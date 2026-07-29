@@ -1,0 +1,136 @@
+# ---------------------------------------------------------------------------
+# SuperShop — .gitignore
+# Regra nº1: nenhum segredo entra no repositório. Segredos em User Secrets
+# (desenvolvimento) e variáveis de ambiente da plataforma (produção).
+# ---------------------------------------------------------------------------
+
+# === Segredos ==============================================================
+# appsettings.json é VERSIONADO, mas só com as chaves vazias.
+# Tudo o que possa conter valores reais fica de fora.
+appsettings.*.local.json
+appsettings.Local.json
+appsettings.Production.json
+appsettings.Development.json
+secrets.json
+*.secrets.json
+
+.env
+.env.*
+!.env.example
+
+# Certificados e chaves
+*.pfx
+*.p12
+*.key
+*.pem
+*.snk
+
+# === .NET ==================================================================
+bin/
+obj/
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+[Bb]uild/
+[Bb]ld/
+[Ll]og/
+[Ll]ogs/
+artifacts/
+publish/
+PublishProfiles/*.pubxml.user
+*.publishsettings
+
+# Resultados de testes e cobertura
+[Tt]est[Rr]esult*/
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+*.trx
+*.opencover.xml
+BenchmarkDotNet.Artifacts/
+
+# Visual Studio / Rider / VS Code
+.vs/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+*.DotSettings.user
+
+# NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+.nuget/
+project.lock.json
+project.fragment.lock.json
+
+# Serilog — ficheiros de log locais
+*.log
+logs/
+
+# === Node / React / Vite ===================================================
+node_modules/
+dist/
+dist-ssr/
+build/
+.vite/
+*.local
+
+# Cache de ferramentas
+.eslintcache
+.stylelintcache
+.turbo/
+.parcel-cache/
+*.tsbuildinfo
+
+# Gestores de pacotes — o lockfile É versionado, os logs não
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.pnpm-store/
+
+# Vercel
+.vercel/
+
+# === Imagens geradas =======================================================
+# As 40 imagens de produto vivem no Cloudinary, não no repositório.
+# A pasta de trabalho local (originais em PNG, grelhas de contacto) fica fora.
+/imagens-produtos/
+/assets-originais/
+*.psd
+
+# === Sistema operativo =====================================================
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# === Temporários ===========================================================
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
