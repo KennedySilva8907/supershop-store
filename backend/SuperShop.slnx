@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SuperShop.Api/SuperShop.Api.csproj" />
+    <Project Path="src/SuperShop.Application/SuperShop.Application.csproj" />
+    <Project Path="src/SuperShop.Domain/SuperShop.Domain.csproj" />
+    <Project Path="src/SuperShop.Infrastructure/SuperShop.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SuperShop.IntegrationTests/SuperShop.IntegrationTests.csproj" />
+    <Project Path="tests/SuperShop.UnitTests/SuperShop.UnitTests.csproj" />
+  </Folder>
+</Solution>

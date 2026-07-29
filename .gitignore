@@ -1,12 +1,4 @@
-# ---------------------------------------------------------------------------
-# SuperShop — .gitignore
-# Regra nº1: nenhum segredo entra no repositório. Segredos em User Secrets
-# (desenvolvimento) e variáveis de ambiente da plataforma (produção).
-# ---------------------------------------------------------------------------
-
-# === Segredos ==============================================================
-# appsettings.json é VERSIONADO, mas só com as chaves vazias.
-# Tudo o que possa conter valores reais fica de fora.
+# === Secrets ==============================================================
 appsettings.*.local.json
 appsettings.Local.json
 appsettings.Production.json
@@ -18,7 +10,6 @@ secrets.json
 .env.*
 !.env.example
 
-# Certificados e chaves
 *.pfx
 *.p12
 *.key
@@ -46,7 +37,6 @@ publish/
 PublishProfiles/*.pubxml.user
 *.publishsettings
 
-# Resultados de testes e cobertura
 [Tt]est[Rr]esult*/
 TestResults/
 coverage/
@@ -79,7 +69,6 @@ BenchmarkDotNet.Artifacts/
 project.lock.json
 project.fragment.lock.json
 
-# Serilog — ficheiros de log locais
 *.log
 logs/
 
@@ -91,14 +80,12 @@ build/
 .vite/
 *.local
 
-# Cache de ferramentas
 .eslintcache
 .stylelintcache
 .turbo/
 .parcel-cache/
 *.tsbuildinfo
 
-# Gestores de pacotes — o lockfile É versionado, os logs não
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -109,14 +96,12 @@ lerna-debug.log*
 # Vercel
 .vercel/
 
-# === Imagens geradas =======================================================
-# As 40 imagens de produto vivem no Cloudinary, não no repositório.
-# A pasta de trabalho local (originais em PNG, grelhas de contacto) fica fora.
+# === Generated images =======================================================
 /imagens-produtos/
 /assets-originais/
 *.psd
 
-# === Sistema operativo =====================================================
+# === OS =====================================================
 Thumbs.db
 Thumbs.db:encryptable
 ehthumbs.db
@@ -128,7 +113,7 @@ $RECYCLE.BIN/
 .Spotlight-V100
 .Trashes
 
-# === Temporários ===========================================================
+# === Temp ===========================================================
 *.tmp
 *.temp
 *.bak
