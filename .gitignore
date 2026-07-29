@@ -2,7 +2,6 @@
 appsettings.*.local.json
 appsettings.Local.json
 appsettings.Production.json
-appsettings.Development.json
 secrets.json
 *.secrets.json
 
