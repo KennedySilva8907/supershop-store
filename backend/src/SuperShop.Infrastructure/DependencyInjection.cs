@@ -1,7 +1,10 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SuperShop.Infrastructure.Identity;
 using SuperShop.Infrastructure.Persistence;
+using SuperShop.Infrastructure.Persistence.Seed;
 
 namespace SuperShop.Infrastructure;
 
@@ -22,6 +25,23 @@ public static class DependencyInjection
 
         services.AddDbContext<SuperShopDbContext>(options =>
             options.UseNpgsql(connectionString));
+
+        services.AddDataProtection();
+
+        services.AddIdentityCore<ApplicationUser>(options =>
+            {
+                options.User.RequireUniqueEmail = true;
+                options.Password.RequiredLength = 8;
+                options.SignIn.RequireConfirmedEmail = true;
+            })
+            .AddRoles<IdentityRole>()
+            .AddEntityFrameworkStores<SuperShopDbContext>()
+            .AddDefaultTokenProviders();
+
+        services.AddScoped<DatabaseSeeder>();
+
+        services.AddHealthChecks()
+            .AddDbContextCheck<SuperShopDbContext>("database");
 
         return services;
     }
