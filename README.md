@@ -1,5 +1,7 @@
 # SuperShop
 
+[![CI](https://github.com/KennedySilva8907/supershop-store/actions/workflows/ci.yml/badge.svg)](https://github.com/KennedySilva8907/supershop-store/actions/workflows/ci.yml)
+
 Online store built with ASP.NET Core 10 and React.
 
 ## Stack
