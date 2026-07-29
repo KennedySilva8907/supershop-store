@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
 using Serilog;
 using SuperShop.Api.Middleware;
+using SuperShop.Api.OpenApi;
 using SuperShop.Infrastructure;
 using SuperShop.Infrastructure.Persistence;
 using SuperShop.Infrastructure.Persistence.Seed;
@@ -14,7 +16,9 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
     .Enrich.FromLogContext()
     .Enrich.WithMachineName());
 
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>());
+
 builder.Services.AddProblemDetails();
 builder.Services.AddInfrastructure(builder.Configuration);
 
@@ -43,6 +47,9 @@ app.UseSerilogRequestLogging(options =>
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference("/scalar", options => options
+        .WithTitle("SuperShop API")
+        .WithTheme(ScalarTheme.BluePlanet));
 
     using var scope = app.Services.CreateScope();
     await scope.ServiceProvider.GetRequiredService<SuperShopDbContext>().Database.MigrateAsync();
