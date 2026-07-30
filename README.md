@@ -22,6 +22,9 @@ frontend/    React application
 assets/      Brand assets
 ```
 
+The frontend renders nothing yet. Tooling, brand tokens and the Cloudinary
+helper are in place, and the pages arrive with the catalogue.
+
 ## Requirements
 
 - .NET SDK 10
