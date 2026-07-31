@@ -1,0 +1,66 @@
+version: 2
+
+updates:
+  - package-ecosystem: nuget
+    directory: /backend
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - chore
+      - backend
+    assignees:
+      - KennedySilva8907
+    commit-message:
+      prefix: "Bump"
+    groups:
+      aspnetcore:
+        patterns:
+          - "Microsoft.AspNetCore.*"
+          - "Microsoft.Extensions.*"
+      efcore:
+        patterns:
+          - "Microsoft.EntityFrameworkCore.*"
+          - "Npgsql.*"
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - chore
+      - frontend
+    assignees:
+      - KennedySilva8907
+    commit-message:
+      prefix: "Bump"
+    groups:
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "react-router"
+          - "@types/react*"
+      tailwind:
+        patterns:
+          - "tailwindcss"
+          - "@tailwindcss/*"
+      vite:
+        patterns:
+          - "vite"
+          - "@vitejs/*"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    labels:
+      - chore
+      - infra
+    assignees:
+      - KennedySilva8907
+    commit-message:
+      prefix: "Bump"
