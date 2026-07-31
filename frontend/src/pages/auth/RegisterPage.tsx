@@ -42,7 +42,8 @@ export function RegisterPage() {
           link para ativares a conta.
         </p>
         <p className="mt-4 text-sm text-muted">
-          Sem confirmação não é possível encomendar. Verifica também a pasta de spam.
+          Sem confirmação não é possível encomendar. Se não chegar em alguns minutos, verifica a
+          pasta de spam.
         </p>
         <Link to="/entrar" className="mt-8 inline-block bg-ink px-8 py-4 text-sm text-bg">
           Ir para entrar
