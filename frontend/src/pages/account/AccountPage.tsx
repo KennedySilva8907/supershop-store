@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useAuth } from "../../features/auth/AuthContext";
 
 export function AccountPage() {
@@ -24,10 +24,17 @@ export function AccountPage() {
         <Row label="Perfil" value={user.roles.join(", ")} />
       </dl>
 
+      <Link
+        to="/conta/moradas"
+        className="mt-10 inline-block bg-ink px-6 py-3 text-sm text-bg transition hover:opacity-90"
+      >
+        Gerir moradas
+      </Link>
+
       <button
         type="button"
         onClick={onSignOut}
-        className="mt-10 border border-line px-6 py-3 text-sm transition hover:border-ink"
+        className="ml-3 mt-10 border border-line px-6 py-3 text-sm transition hover:border-ink"
       >
         Terminar sessão
       </button>

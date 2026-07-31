@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SuperShop.Infrastructure.Identity;
 using SuperShop.Infrastructure.Persistence;
+using SuperShop.Application.Account;
 using SuperShop.Application.Auth;
 using SuperShop.Application.Catalog;
 using SuperShop.Infrastructure.Auth;
@@ -54,9 +55,19 @@ public static class DependencyInjection
         services.AddScoped<TokenService>();
         services.AddScoped<IIdentityGateway, IdentityGateway>();
         services.AddScoped<AuthService>();
+        services.AddScoped<IAddressRepository, AddressRepository>();
+        services.AddScoped<AddressService>();
 
-        if (isDevelopment)
+        var emailApiKey = configuration["Email:ApiKey"];
+
+        if (string.IsNullOrWhiteSpace(emailApiKey))
         {
+            if (!isDevelopment)
+            {
+                throw new InvalidOperationException(
+                    "Email:ApiKey is not configured. Set it as an environment variable in production.");
+            }
+
             services.AddScoped<IEmailSender, ConsoleEmailSender>();
         }
         else
@@ -65,7 +76,7 @@ public static class DependencyInjection
             {
                 client.BaseAddress = new Uri("https://api.brevo.com/");
                 client.Timeout = TimeSpan.FromSeconds(15);
-                client.DefaultRequestHeaders.Add("api-key", configuration["Email:ApiKey"]);
+                client.DefaultRequestHeaders.Add("api-key", emailApiKey);
                 client.DefaultRequestHeaders.Add("accept", "application/json");
                 client.DefaultRequestHeaders.UserAgent.ParseAdd("SuperShop/1.0");
             });
