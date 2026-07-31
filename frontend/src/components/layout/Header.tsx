@@ -1,8 +1,10 @@
 import { Link, NavLink } from "react-router";
+import { useAuth } from "../../features/auth/AuthContext";
 import { useCategories } from "../../features/catalog/queries";
 
 export function Header() {
   const { data: categories } = useCategories();
+  const { user } = useAuth();
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg/95 backdrop-blur">
@@ -33,6 +35,15 @@ export function Header() {
             </NavLink>
           ))}
         </nav>
+
+        <div className="ml-auto">
+          <Link
+            to={user ? "/conta" : "/entrar"}
+            className="text-sm text-muted transition hover:text-ink"
+          >
+            {user ? user.firstName : "Entrar"}
+          </Link>
+        </div>
       </div>
     </header>
   );
