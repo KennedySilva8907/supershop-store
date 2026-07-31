@@ -5,6 +5,12 @@ using Microsoft.Extensions.DependencyInjection;
 using SuperShop.Infrastructure.Identity;
 using SuperShop.Infrastructure.Persistence;
 using SuperShop.Application.Account;
+using SuperShop.Application.Cart;
+using SuperShop.Application.Orders;
+using SuperShop.Application.Payments;
+using SuperShop.Infrastructure.Orders;
+using SuperShop.Infrastructure.Payments;
+using SuperShop.Infrastructure.Configuration;
 using SuperShop.Application.Auth;
 using SuperShop.Application.Catalog;
 using SuperShop.Infrastructure.Auth;
@@ -51,12 +57,23 @@ public static class DependencyInjection
 
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
         services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
+        services.Configure<ShippingOptions>(configuration.GetSection(ShippingOptions.SectionName));
+        services.Configure<PaymentOptions>(configuration.GetSection(PaymentOptions.SectionName));
         services.AddSingleton(TimeProvider.System);
         services.AddScoped<TokenService>();
         services.AddScoped<IIdentityGateway, IdentityGateway>();
         services.AddScoped<AuthService>();
         services.AddScoped<IAddressRepository, AddressRepository>();
         services.AddScoped<AddressService>();
+        services.AddScoped<ICartRepository, CartRepository>();
+        services.AddScoped<CartService>();
+        services.AddScoped<IOrderRepository, OrderRepository>();
+        services.AddScoped<OrderService>();
+        services.AddScoped<IPaymentSimulator, MultibancoSimulator>();
+        services.AddScoped<IPaymentSimulator, MbWaySimulator>();
+        services.AddScoped<IPaymentSimulator, CardSimulator>();
+        services.AddScoped<IPaymentSimulator, CashOnDeliverySimulator>();
+        services.AddScoped<IPaymentSimulatorFactory, PaymentSimulatorFactory>();
 
         var emailApiKey = configuration["Email:ApiKey"];
 
