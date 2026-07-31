@@ -4,6 +4,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SuperShop.Infrastructure.Identity;
 using SuperShop.Infrastructure.Persistence;
+using SuperShop.Application.Catalog;
+using SuperShop.Infrastructure.Persistence.Repositories;
 using SuperShop.Infrastructure.Persistence.Seed;
 
 namespace SuperShop.Infrastructure;
@@ -38,6 +40,8 @@ public static class DependencyInjection
             .AddEntityFrameworkStores<SuperShopDbContext>()
             .AddDefaultTokenProviders();
 
+        services.AddScoped<ICatalogRepository, CatalogRepository>();
+        services.AddScoped<ProductService>();
         services.AddScoped<DatabaseSeeder>();
 
         services.AddHealthChecks()
