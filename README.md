@@ -73,3 +73,4 @@ Development uses User Secrets, production uses platform environment variables.
 | `Cloudinary__Url` | Image storage |
 | `Email__ApiKey` | Transactional email |
 | `Admin__Email` / `Admin__Password` | Admin seed |
+teste
