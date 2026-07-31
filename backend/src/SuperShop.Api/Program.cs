@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Serilog;
+using SuperShop.Api.Extensions;
 using SuperShop.Api.Middleware;
 using SuperShop.Api.OpenApi;
 using SuperShop.Infrastructure;
@@ -21,7 +22,9 @@ builder.Services.AddOpenApi(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
-builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddInfrastructure(builder.Configuration, builder.Environment.IsDevelopment());
+builder.Services.AddApiAuthentication(builder.Configuration);
+builder.Services.AddAuthRateLimiting();
 
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 
@@ -60,6 +63,10 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors("frontend");
+
+app.UseRateLimiter();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

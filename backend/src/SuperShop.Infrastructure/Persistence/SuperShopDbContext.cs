@@ -20,6 +20,7 @@ public class SuperShopDbContext(DbContextOptions<SuperShopDbContext> options)
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
