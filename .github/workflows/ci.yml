@@ -64,6 +64,7 @@ jobs:
           ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=supershop;Username=supershop;Password=ci"
           Jwt__Secret: "ci-secret-key-with-more-than-thirty-two-bytes"
         run: |
+          dotnet restore SuperShop.slnx
           dotnet tool install --global dotnet-ef
           dotnet ef database update \
             --project src/SuperShop.Infrastructure \
