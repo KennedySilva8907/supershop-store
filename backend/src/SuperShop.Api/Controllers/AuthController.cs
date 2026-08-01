@@ -105,7 +105,7 @@ public class AuthController(AuthService auth) : ControllerBase
     {
         HttpOnly = true,
         Secure = secure,
-        SameSite = SameSiteMode.Strict,
+        SameSite = secure ? SameSiteMode.None : SameSiteMode.Strict,
         Path = "/api/auth",
         Expires = DateTimeOffset.UtcNow.AddDays(7)
     };
