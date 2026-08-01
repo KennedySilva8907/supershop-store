@@ -5,11 +5,13 @@ using Microsoft.Extensions.DependencyInjection;
 using SuperShop.Infrastructure.Identity;
 using SuperShop.Infrastructure.Persistence;
 using SuperShop.Application.Account;
+using SuperShop.Application.Admin;
 using SuperShop.Application.Cart;
 using SuperShop.Application.Orders;
 using SuperShop.Application.Payments;
 using SuperShop.Infrastructure.Orders;
 using SuperShop.Infrastructure.Payments;
+using SuperShop.Infrastructure.Storage;
 using SuperShop.Infrastructure.Configuration;
 using SuperShop.Application.Auth;
 using SuperShop.Application.Catalog;
@@ -74,6 +76,20 @@ public static class DependencyInjection
         services.AddScoped<IPaymentSimulator, CardSimulator>();
         services.AddScoped<IPaymentSimulator, CashOnDeliverySimulator>();
         services.AddScoped<IPaymentSimulatorFactory, PaymentSimulatorFactory>();
+        services.AddScoped<IAdminRepository, AdminRepository>();
+        services.AddScoped<AdminService>();
+
+        var cloudinaryUrl = configuration["Cloudinary:Url"];
+
+        if (string.IsNullOrWhiteSpace(cloudinaryUrl))
+        {
+            services.AddScoped<IImageStorage, UnavailableImageStorage>();
+        }
+        else
+        {
+            services.AddSingleton(new CloudinaryDotNet.Cloudinary(cloudinaryUrl) { Api = { Secure = true } });
+            services.AddScoped<IImageStorage, CloudinaryImageStorage>();
+        }
 
         var emailApiKey = configuration["Email:ApiKey"];
 
