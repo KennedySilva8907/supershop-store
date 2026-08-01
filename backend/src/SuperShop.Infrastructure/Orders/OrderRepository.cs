@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
+using SuperShop.Application.Auth;
 using SuperShop.Application.Orders;
 using SuperShop.Application.Payments;
 using SuperShop.Domain.Entities;
@@ -7,6 +10,7 @@ using SuperShop.Domain.Enums;
 using SuperShop.Domain.Exceptions;
 using SuperShop.Domain.Orders;
 using SuperShop.Infrastructure.Configuration;
+using SuperShop.Infrastructure.Identity;
 using SuperShop.Infrastructure.Persistence;
 
 namespace SuperShop.Infrastructure.Orders;
@@ -15,6 +19,9 @@ public class OrderRepository(
     SuperShopDbContext context,
     IPaymentSimulatorFactory simulators,
     IOptions<ShippingOptions> shipping,
+    UserManager<ApplicationUser> userManager,
+    IEmailSender emailSender,
+    ILogger<OrderRepository> logger,
     TimeProvider clock) : IOrderRepository
 {
     public async Task<OrderDto> PlaceAsync(
@@ -118,9 +125,57 @@ public class OrderRepository(
             await context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
-            return await LoadAsync(userId, order.OrderNumber, cancellationToken);
+            var placed = await LoadAsync(userId, order.OrderNumber, cancellationToken);
+
+            await NotifyAsync(userId, placed, cancellationToken);
+
+            return placed;
         });
     }
+
+    private async Task NotifyAsync(string userId, OrderDto order, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var customer = await userManager.FindByIdAsync(userId);
+
+            if (customer?.Email is null)
+            {
+                return;
+            }
+
+            var summary = new OrderEmailSummary(
+                order.OrderNumber,
+                order.Subtotal,
+                order.ShippingCost,
+                order.Total,
+                order.ShippingFullName,
+                order.ShippingLine1,
+                order.ShippingLine2,
+                order.ShippingPostalCode,
+                order.ShippingCity,
+                [.. order.Items.Select(i => new OrderEmailLine(i.ProductName, i.SizeLabel, i.Quantity, i.LineTotal))],
+                PaymentLabel(order.Payment.Method));
+
+            await emailSender.SendOrderConfirmationAsync(customer.Email, customer.FirstName, summary, cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(
+                exception,
+                "A encomenda {OrderNumber} ficou registada mas o email de confirmação falhou.",
+                order.OrderNumber);
+        }
+    }
+
+    private static string PaymentLabel(PaymentMethod method) => method switch
+    {
+        PaymentMethod.Multibanco => "Multibanco",
+        PaymentMethod.MbWay => "MB WAY",
+        PaymentMethod.Card => "Cartão",
+        PaymentMethod.CashOnDelivery => "Na entrega",
+        _ => method.ToString()
+    };
 
     public async Task<OrderDto> ConfirmPaymentAsync(
         string userId,
