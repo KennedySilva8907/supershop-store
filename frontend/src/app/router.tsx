@@ -14,6 +14,11 @@ import { CheckoutPage } from "../pages/checkout/CheckoutPage";
 import { HomePage } from "../pages/home/HomePage";
 import { OrderPage } from "../pages/order/OrderPage";
 import { ProductPage } from "../pages/product/ProductPage";
+import { AdminLayout } from "./AdminLayout";
+import { AdminOrdersPage } from "../pages/admin/AdminOrdersPage";
+import { AdminProductsPage } from "../pages/admin/AdminProductsPage";
+import { DashboardPage } from "../pages/admin/DashboardPage";
+import { StockGridPage } from "../pages/admin/StockGridPage";
 import { Layout } from "./Layout";
 
 export const router = createBrowserRouter([
@@ -40,6 +45,20 @@ export const router = createBrowserRouter([
           { path: "conta", element: <AccountPage /> },
           { path: "conta/moradas", element: <AddressesPage /> },
           { path: "conta/encomendas", element: <OrdersPage /> },
+        ],
+      },
+    ],
+  },
+  {
+    element: <RequireAuth adminOnly />,
+    children: [
+      {
+        element: <AdminLayout />,
+        children: [
+          { path: "admin", element: <DashboardPage /> },
+          { path: "admin/produtos", element: <AdminProductsPage /> },
+          { path: "admin/produtos/:id/stock", element: <StockGridPage /> },
+          { path: "admin/encomendas", element: <AdminOrdersPage /> },
         ],
       },
     ],
