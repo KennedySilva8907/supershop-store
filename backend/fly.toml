@@ -2,7 +2,7 @@ app = "supershop-api"
 primary_region = "fra"
 
 [build]
-  dockerfile = "backend/Dockerfile"
+  dockerfile = "Dockerfile"
 
 [env]
   ASPNETCORE_ENVIRONMENT = "Production"

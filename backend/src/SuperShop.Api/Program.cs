@@ -36,6 +36,13 @@ builder.Services.AddCors(options => options.AddPolicy("frontend", policy => poli
 
 var app = builder.Build();
 
+if (args.Contains("--seed"))
+{
+    using var seedScope = app.Services.CreateScope();
+    await seedScope.ServiceProvider.GetRequiredService<DatabaseSeeder>().SeedAsync();
+    return;
+}
+
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseSerilogRequestLogging(options =>
