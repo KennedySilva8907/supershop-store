@@ -22,9 +22,9 @@ builder.Services.AddOpenApi(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
-builder.Services.AddInfrastructure(builder.Configuration, builder.Environment.IsDevelopment());
+builder.Services.AddInfrastructure(builder.Configuration, builder.Environment.IsProduction());
 builder.Services.AddApiAuthentication(builder.Configuration);
-builder.Services.AddAuthRateLimiting();
+builder.Services.AddAuthRateLimiting(builder.Configuration);
 
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 

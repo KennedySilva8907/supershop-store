@@ -55,16 +55,18 @@ public static class AuthenticationExtensions
         return services;
     }
 
-    public static IServiceCollection AddAuthRateLimiting(this IServiceCollection services) =>
+    public static IServiceCollection AddAuthRateLimiting(this IServiceCollection services, IConfiguration configuration) =>
         services.AddRateLimiter(options =>
         {
+            var permitPerMinute = configuration.GetValue<int?>("RateLimit:AuthPermitPerMinute") ?? 5;
+
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
             options.AddPolicy("auth", context => RateLimitPartition.GetFixedWindowLimiter(
                 context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
                 _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 5,
+                    PermitLimit = permitPerMinute,
                     Window = TimeSpan.FromMinutes(1),
                     QueueLimit = 0
                 }));
