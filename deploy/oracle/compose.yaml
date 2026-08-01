@@ -1,0 +1,41 @@
+name: supershop
+
+services:
+  api:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    image: supershop-api:latest
+    restart: always
+    env_file: .env
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_HTTP_PORTS: 8080
+    expose:
+      - "8080"
+    networks:
+      - supershop
+
+  proxy:
+    image: caddy:2-alpine
+    restart: always
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    env_file: .env
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - supershop
+
+networks:
+  supershop:
+
+volumes:
+  caddy-data:
+  caddy-config:
