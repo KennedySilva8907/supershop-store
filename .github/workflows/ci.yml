@@ -37,6 +37,49 @@ jobs:
           name: test-results
           path: artifacts/tests
 
+  container:
+    name: Container
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build image
+        run: docker build -t supershop-api:ci backend
+
+      - name: Start image against a throwaway database
+        run: |
+          docker network create ci
+          docker run -d --name db --network ci \
+            -e POSTGRES_DB=supershop -e POSTGRES_USER=supershop -e POSTGRES_PASSWORD=ci \
+            postgres:17-alpine
+          until docker exec db pg_isready -U supershop -d supershop; do sleep 2; done
+          docker run -d --name api --network ci -p 8080:8080 \
+            -e ASPNETCORE_ENVIRONMENT=Staging \
+            -e "ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=supershop;Username=supershop;Password=ci" \
+            -e "Jwt__Secret=ci-secret-key-with-more-than-thirty-two-bytes" \
+            -e Jwt__Issuer=supershop-api -e Jwt__Audience=supershop-web \
+            supershop-api:ci
+
+      - name: Wait for readiness
+        run: |
+          for i in $(seq 1 40); do
+            if [ "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/health)" = "200" ]; then
+              echo "up"; exit 0
+            fi
+            sleep 3
+          done
+          echo "the container never became healthy"
+          docker logs api
+          exit 1
+
+      - name: Check readiness and the catalogue
+        run: |
+          curl -fsS http://localhost:8080/health/ready
+          curl -fsS -o /dev/null http://localhost:8080/api/products
+
+      - name: Check it does not run as root
+        run: test "$(docker exec api id -u)" = "1001"
+
   frontend:
     name: Frontend
     runs-on: ubuntu-latest
