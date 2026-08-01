@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Serilog;
@@ -20,6 +21,13 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
 builder.Services.AddOpenApi(options =>
     options.AddDocumentTransformer<BearerSecuritySchemeTransformer>());
 
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedFor;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment.IsProduction());
@@ -35,6 +43,8 @@ builder.Services.AddCors(options => options.AddPolicy("frontend", policy => poli
     .AllowCredentials()));
 
 var app = builder.Build();
+
+app.UseForwardedHeaders();
 
 if (args.Contains("--seed"))
 {
