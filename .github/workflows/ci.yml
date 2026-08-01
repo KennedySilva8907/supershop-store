@@ -43,16 +43,34 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
       - name: Build image
         run: docker build -t supershop-api:ci backend
 
-      - name: Start image against a throwaway database
+      - name: Start a throwaway database
         run: |
           docker network create ci
-          docker run -d --name db --network ci \
+          docker run -d --name db --network ci -p 5432:5432 \
             -e POSTGRES_DB=supershop -e POSTGRES_USER=supershop -e POSTGRES_PASSWORD=ci \
             postgres:17-alpine
           until docker exec db pg_isready -U supershop -d supershop; do sleep 2; done
+
+      - name: Apply migrations by explicit command
+        working-directory: backend
+        env:
+          ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=supershop;Username=supershop;Password=ci"
+          Jwt__Secret: "ci-secret-key-with-more-than-thirty-two-bytes"
+        run: |
+          dotnet tool install --global dotnet-ef
+          dotnet ef database update \
+            --project src/SuperShop.Infrastructure \
+            --startup-project src/SuperShop.Api
+
+      - name: Start the image
+        run: |
           docker run -d --name api --network ci -p 8080:8080 \
             -e ASPNETCORE_ENVIRONMENT=Staging \
             -e "ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=supershop;Username=supershop;Password=ci" \
