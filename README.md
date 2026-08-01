@@ -79,22 +79,19 @@ Development uses User Secrets, production uses platform environment variables.
 
 The API and the database must sit in the same region. A round trip across the
 Atlantic adds 100 to 200 ms to every query, and a page making ten queries pays
-that ten times.
+that ten times. Both halves run in Frankfurt.
 
-Free plans suspend after a period without traffic. The first request afterwards
-pays the wake-up:
+Fly has no free allowance for new organisations, so idle time is billed. The
+machine therefore stops when nothing is using it and starts again on the next
+request, which costs a few seconds on that request and almost nothing a month.
+Keeping it always on removes the wait and costs about $3.32 a month.
 
-| Layer | Suspends | Wake-up |
-| --- | --- | --- |
-| API on a free container host | after 15 minutes idle | 30 to 60 seconds |
-| Neon free tier | after 5 minutes idle | under a second |
+`stop` rather than `suspend`. Suspending resumes faster, but the machine clock
+drifts across a suspend, and tokens are validated against it. Stopping gives a
+fresh process, a fresh connection pool and a correct clock.
 
-That first slow request is the hosting plan, not the application. Keeping one
-instance always on removes it, which is what a paid tier buys.
-
-Two things reduce it without paying: use a pooled connection string, so the
-database is not reconnected on every request, and keep both halves in the same
-region.
+A pooled connection string keeps the database from being reconnected on every
+request, which matters more than either of these.
 
 ## Deployment
 
