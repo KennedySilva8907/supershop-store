@@ -24,6 +24,15 @@ public class RefreshCookieTests(SuperShopFactory factory) : IClassFixture<SuperS
     }
 
     [Fact]
+    public async Task Behind_a_proxy_that_terminates_tls_the_forwarded_scheme_decides()
+    {
+        var cookie = await SignInAndReadCookie(new Uri("http://localhost"), forwardedProto: "https");
+
+        Assert.Contains("samesite=none", cookie, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("secure", cookie, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task The_cookie_is_http_only_and_scoped_to_the_auth_endpoints()
     {
         var cookie = await SignInAndReadCookie(new Uri("https://localhost"));
@@ -32,16 +41,25 @@ public class RefreshCookieTests(SuperShopFactory factory) : IClassFixture<SuperS
         Assert.Contains("path=/api/auth", cookie, StringComparison.OrdinalIgnoreCase);
     }
 
-    private async Task<string> SignInAndReadCookie(Uri baseAddress)
+    private async Task<string> SignInAndReadCookie(Uri baseAddress, string? forwardedProto = null)
     {
         var client = factory.CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = baseAddress });
 
-        var response = await client.PostAsJsonAsync("/api/auth/login", new
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/auth/login")
         {
-            email = "admin@supershop.pt",
-            password = "AdminPassword123!"
-        });
+            Content = JsonContent.Create(new
+            {
+                email = "admin@supershop.pt",
+                password = "AdminPassword123!"
+            })
+        };
 
+        if (forwardedProto is not null)
+        {
+            request.Headers.Add("X-Forwarded-Proto", forwardedProto);
+        }
+
+        var response = await client.SendAsync(request);
         response.EnsureSuccessStatusCode();
 
         return Assert.Single(response.Headers.GetValues("Set-Cookie"));
