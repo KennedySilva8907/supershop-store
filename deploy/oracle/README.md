@@ -41,9 +41,17 @@ cp .env.example .env
 Fill it in and keep it on the machine. It holds every secret and is never
 committed.
 
-`API_DOMAIN` has to resolve to the instance before the first start, because
-Caddy asks Let's Encrypt for a certificate as it boots and the request fails
-without a working record.
+`API_DOMAIN` is `api.silva.dev`. It has to resolve to the instance before the
+first start, because Caddy asks Let's Encrypt for a certificate as it boots
+and the request fails without a working record.
+
+The record is an `A` pointing at the instance public address, added wherever
+the domain's nameservers are, which for `silva.dev` is the registrar rather
+than Vercel.
+
+```bash
+nslookup api.silva.dev
+```
 
 ## Running
 
