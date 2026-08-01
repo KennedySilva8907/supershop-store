@@ -105,6 +105,16 @@ dotnet ef database update --project src/SuperShop.Infrastructure \
   --startup-project src/SuperShop.Api
 ```
 
+The catalogue and the administrator are seeded by the same principle, with an
+explicit command against the deployed image:
+
+```bash
+dotnet SuperShop.Api.dll --seed
+```
+
+It is idempotent. Products already present are left alone, and the
+administrator is created only if the e-mail is not taken.
+
 The API ships as a container. It runs as an unprivileged user and exposes
 `/health` for liveness and `/health/ready` for database readiness, which is the
 one a platform should poll.
