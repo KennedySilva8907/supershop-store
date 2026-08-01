@@ -30,4 +30,17 @@ public class ConsoleEmailSender(ILogger<ConsoleEmailSender> logger) : IEmailSend
 
         return Task.CompletedTask;
     }
+
+    public Task SendOrderConfirmationAsync(
+        string email,
+        string name,
+        OrderEmailSummary order,
+        CancellationToken cancellationToken = default)
+    {
+        logger.LogInformation(
+            "Confirmacao da encomenda {OrderNumber} para {Email} ({Name}). Total {Total}, {Lines} linhas, pagamento {Payment}.",
+            order.OrderNumber, email, name, order.Total, order.Lines.Count, order.PaymentLabel);
+
+        return Task.CompletedTask;
+    }
 }
