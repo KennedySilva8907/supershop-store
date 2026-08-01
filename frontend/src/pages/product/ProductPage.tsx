@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useParams } from "react-router";
 import { ImageGallery } from "../../components/product/ImageGallery";
 import { SizeSelector } from "../../components/product/SizeSelector";
+import { useCartActions } from "../../features/cart/useCart";
 import { useProduct } from "../../features/catalog/queries";
 import { ApiError } from "../../lib/apiClient";
 import { formatPrice } from "../../lib/format";
@@ -10,6 +11,9 @@ export function ProductPage() {
   const { slug = "" } = useParams();
   const { data: product, isPending, error } = useProduct(slug);
   const [variantId, setVariantId] = useState<number | null>(null);
+  const [added, setAdded] = useState(false);
+  const [addError, setAddError] = useState<Error | null>(null);
+  const { add } = useCartActions();
 
   if (isPending) {
     return <ProductSkeleton />;
@@ -86,14 +90,34 @@ export function ProductPage() {
 
           <button
             type="button"
-            disabled={!product.hasStock || selected === null}
+            disabled={!product.hasStock || selected === null || add.isPending}
+            onClick={() => {
+              if (selected) {
+                setAddError(null);
+                add.mutate(
+                  { variantId: selected.id, quantity: 1 },
+                  { onSuccess: () => setAdded(true), onError: (e) => setAddError(e as Error) },
+                );
+              }
+            }}
             className="mt-8 w-full bg-ink px-8 py-4 text-sm text-bg transition enabled:hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
           >
-            Adicionar ao carrinho
+            {add.isPending ? "A adicionar…" : "Adicionar ao carrinho"}
           </button>
 
           {product.hasStock && selected === null && (
             <p className="mt-3 text-sm text-muted">Escolhe um tamanho</p>
+          )}
+
+          {addError && <p className="mt-3 text-sm text-danger">{addError.message}</p>}
+
+          {added && !addError && (
+            <p className="mt-3 text-sm">
+              Adicionado.{" "}
+              <Link to="/carrinho" className="underline underline-offset-4">
+                Ver carrinho
+              </Link>
+            </p>
           )}
 
           {selected && (
