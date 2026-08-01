@@ -27,7 +27,7 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration,
-        bool isDevelopment)
+        bool isProduction)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
@@ -95,7 +95,7 @@ public static class DependencyInjection
 
         if (string.IsNullOrWhiteSpace(emailApiKey))
         {
-            if (!isDevelopment)
+            if (isProduction)
             {
                 throw new InvalidOperationException(
                     "Email:ApiKey is not configured. Set it as an environment variable in production.");
