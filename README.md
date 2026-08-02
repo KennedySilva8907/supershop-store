@@ -4,6 +4,12 @@
 
 Online store built with ASP.NET Core 10 and React.
 
+**[supershop.pt](https://supershop.pt)** · API at
+[api.supershop.pt](https://api.supershop.pt/health/ready)
+
+The API stops when nothing is using it, so the first request after a quiet
+period takes a few seconds.
+
 ## Stack
 
 | Layer | Technology |
@@ -21,9 +27,6 @@ backend/     ASP.NET Core solution (Domain, Application, Infrastructure, Api)
 frontend/    React application
 assets/      Brand assets
 ```
-
-The frontend renders nothing yet. Tooling, brand tokens and the Cloudinary
-helper are in place, and the pages arrive with the catalogue.
 
 ## Requirements
 
