@@ -74,6 +74,16 @@ Development uses User Secrets, production uses platform environment variables.
 | `Email__ApiKey` | Transactional email |
 | `Admin__Email` / `Admin__Password` | Admin seed |
 | `RateLimit__AuthPermitPerMinute` | Sign in attempts per minute per IP, default 5 |
+| `Auth__FrontendOnAnotherSite` | `true` only when the store is not on a subdomain of the API's site |
+
+The refresh cookie is `SameSite=Strict`, which is what the store and the API
+sharing `supershop.pt` allows, and it is the strongest of the three: the
+browser refuses to send it on any request that starts somewhere else.
+
+Put the store on a different site and that same setting silently stops the
+session from renewing, because a `Strict` cookie never crosses sites. That is
+what `Auth__FrontendOnAnotherSite` is for, and it only takes effect over HTTPS,
+since `SameSite=None` requires `Secure`.
 
 ## Hosting and what free tiers cost
 

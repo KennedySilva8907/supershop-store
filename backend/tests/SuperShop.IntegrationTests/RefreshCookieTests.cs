@@ -6,9 +6,18 @@ namespace SuperShop.IntegrationTests;
 public class RefreshCookieTests(SuperShopFactory factory) : IClassFixture<SuperShopFactory>
 {
     [Fact]
-    public async Task Over_https_the_cookie_can_cross_sites_so_the_frontend_can_renew_a_session()
+    public async Task By_default_the_cookie_is_strict_because_the_frontend_shares_the_site()
     {
         var cookie = await SignInAndReadCookie(new Uri("https://localhost"));
+
+        Assert.Contains("samesite=strict", cookie, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("secure", cookie, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task A_frontend_on_another_site_gets_a_cookie_that_can_reach_it()
+    {
+        var cookie = await SignInAndReadCookie(new Uri("https://localhost"), frontendOnAnotherSite: true);
 
         Assert.Contains("samesite=none", cookie, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("secure", cookie, StringComparison.OrdinalIgnoreCase);
@@ -17,7 +26,7 @@ public class RefreshCookieTests(SuperShopFactory factory) : IClassFixture<SuperS
     [Fact]
     public async Task Over_http_the_cookie_stays_strict_because_none_would_be_rejected_without_secure()
     {
-        var cookie = await SignInAndReadCookie(new Uri("http://localhost"));
+        var cookie = await SignInAndReadCookie(new Uri("http://localhost"), frontendOnAnotherSite: true);
 
         Assert.Contains("samesite=strict", cookie, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("secure", cookie, StringComparison.OrdinalIgnoreCase);
@@ -28,7 +37,6 @@ public class RefreshCookieTests(SuperShopFactory factory) : IClassFixture<SuperS
     {
         var cookie = await SignInAndReadCookie(new Uri("http://localhost"), forwardedProto: "https");
 
-        Assert.Contains("samesite=none", cookie, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("secure", cookie, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -41,9 +49,17 @@ public class RefreshCookieTests(SuperShopFactory factory) : IClassFixture<SuperS
         Assert.Contains("path=/api/auth", cookie, StringComparison.OrdinalIgnoreCase);
     }
 
-    private async Task<string> SignInAndReadCookie(Uri baseAddress, string? forwardedProto = null)
+    private async Task<string> SignInAndReadCookie(
+        Uri baseAddress,
+        string? forwardedProto = null,
+        bool frontendOnAnotherSite = false)
     {
-        var client = factory.CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = baseAddress });
+        var application = frontendOnAnotherSite
+            ? factory.WithWebHostBuilder(builder =>
+                builder.UseSetting("Auth:FrontendOnAnotherSite", "true"))
+            : factory;
+
+        var client = application.CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = baseAddress });
 
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/auth/login")
         {
