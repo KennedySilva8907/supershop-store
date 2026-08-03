@@ -1,40 +1,44 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Field, FormError } from "../../components/ui/Field";
+import { AddressForm } from "../../features/account/AddressForm";
 import { useCart } from "../../features/cart/useCart";
 import { ApiError, apiGet, apiSend } from "../../lib/apiClient";
 import { formatPrice } from "../../lib/format";
+import type { Address, SaveAddress } from "../../types/account";
 import { METHOD_LABELS, PaymentMethod, type Order, type PaymentMethodValue } from "../../types/cart";
-
-interface Address {
-  id: number;
-  fullName: string;
-  line1: string;
-  line2: string | null;
-  postalCode: string;
-  city: string;
-  country: string;
-  phone: string;
-  isDefault: boolean;
-}
 
 const STEPS = ["Morada", "Pagamento", "Revisão"];
 
 export function CheckoutPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: cart } = useCart();
 
   const [step, setStep] = useState(0);
   const [addressId, setAddressId] = useState<number | null>(null);
+  const [addingAddress, setAddingAddress] = useState(false);
   const [method, setMethod] = useState<PaymentMethodValue>(PaymentMethod.Multibanco);
   const [phone, setPhone] = useState("");
   const [card, setCard] = useState("");
   const [error, setError] = useState<ApiError | null>(null);
+  const [addressError, setAddressError] = useState<ApiError | null>(null);
 
   const { data: addresses, isPending } = useQuery({
     queryKey: ["addresses"],
     queryFn: ({ signal }) => apiGet<Address[]>("/me/addresses", signal),
+  });
+
+  const saveAddress = useMutation({
+    mutationFn: (values: SaveAddress) => apiSend<Address>("POST", "/me/addresses", values),
+    onSuccess: async (created) => {
+      setAddressError(null);
+      setAddingAddress(false);
+      setAddressId(created.id);
+      await queryClient.invalidateQueries({ queryKey: ["addresses"] });
+    },
+    onError: (caught) => setAddressError(caught instanceof ApiError ? caught : null),
   });
 
   const place = useMutation({
@@ -90,12 +94,37 @@ export function CheckoutPage() {
 
           {isPending && <div className="mt-6 h-24 animate-pulse bg-surface" />}
 
-          {addresses?.length === 0 && (
+          {addresses?.length === 0 && !addingAddress && (
             <div className="mt-6 border border-line p-6">
-              <p className="text-sm text-muted">Ainda não tens moradas guardadas.</p>
-              <Link to="/conta/moradas" className="mt-4 inline-block bg-ink px-6 py-3 text-sm text-bg">
+              <p className="text-sm text-muted">
+                Ainda não tens moradas guardadas. Escreve a morada de envio para continuares.
+              </p>
+              <button
+                type="button"
+                onClick={() => setAddingAddress(true)}
+                className="mt-4 bg-ink px-6 py-3 text-sm text-bg transition hover:opacity-90"
+              >
                 Adicionar morada
-              </Link>
+              </button>
+            </div>
+          )}
+
+          {addingAddress && (
+            <div className="mt-6">
+              <AddressForm
+                error={addressError}
+                saving={saveAddress.isPending}
+                submitLabel="Guardar e continuar"
+                onSubmit={(values) => saveAddress.mutate(values)}
+                onCancel={
+                  addresses?.length === 0
+                    ? undefined
+                    : () => {
+                        setAddingAddress(false);
+                        setAddressError(null);
+                      }
+                }
+              />
             </div>
           )}
 
@@ -123,14 +152,28 @@ export function CheckoutPage() {
             ))}
           </div>
 
-          <button
-            type="button"
-            disabled={addressId === null}
-            onClick={() => setStep(1)}
-            className="mt-8 bg-ink px-8 py-4 text-sm text-bg transition enabled:hover:opacity-90 disabled:opacity-40"
-          >
-            Continuar
-          </button>
+          {!addingAddress && addresses !== undefined && addresses.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setAddingAddress(true)}
+              className="mt-6 text-sm underline underline-offset-4"
+            >
+              Enviar para outra morada
+            </button>
+          )}
+
+          {!addingAddress && (
+            <div className="mt-8">
+              <button
+                type="button"
+                disabled={addressId === null}
+                onClick={() => setStep(1)}
+                className="bg-ink px-8 py-4 text-sm text-bg transition enabled:hover:opacity-90 disabled:opacity-40"
+              >
+                Continuar
+              </button>
+            </div>
+          )}
         </section>
       )}
 

@@ -1,19 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Field, FormError } from "../../components/ui/Field";
+import { AddressForm } from "../../features/account/AddressForm";
 import { ApiError, apiGet, apiSend } from "../../lib/apiClient";
-
-interface Address {
-  id: number;
-  fullName: string;
-  line1: string;
-  line2: string | null;
-  postalCode: string;
-  city: string;
-  country: string;
-  phone: string;
-  isDefault: boolean;
-}
+import type { Address, SaveAddress } from "../../types/account";
 
 export function AddressesPage() {
   const queryClient = useQueryClient();
@@ -28,7 +17,7 @@ export function AddressesPage() {
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["addresses"] });
 
   const save = useMutation({
-    mutationFn: (body: Omit<Address, "id">) =>
+    mutationFn: (body: SaveAddress) =>
       editing === "new"
         ? apiSend<Address>("POST", "/me/addresses", body)
         : apiSend<Address>("PUT", `/me/addresses/${(editing as Address).id}`, body),
@@ -44,22 +33,6 @@ export function AddressesPage() {
     mutationFn: (id: number) => apiSend("DELETE", `/me/addresses/${id}`),
     onSuccess: invalidate,
   });
-
-  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-
-    save.mutate({
-      fullName: String(form.get("fullName")),
-      line1: String(form.get("line1")),
-      line2: String(form.get("line2")) || null,
-      postalCode: String(form.get("postalCode")),
-      city: String(form.get("city")),
-      country: String(form.get("country") || "PT"),
-      phone: String(form.get("phone")),
-      isDefault: form.get("isDefault") === "on",
-    });
-  }
 
   const current = editing === "new" ? null : editing;
 
@@ -79,48 +52,18 @@ export function AddressesPage() {
       </div>
 
       {editing !== null && (
-        <form onSubmit={onSubmit} className="mt-10 space-y-6 border border-line p-6" noValidate>
-          {error && <FormError message={error.message} traceId={error.problem.traceId} />}
-
-          <Field label="Quem recebe" name="fullName" defaultValue={current?.fullName} required />
-          <Field label="Morada" name="line1" defaultValue={current?.line1} required />
-          <Field label="Complemento" name="line2" defaultValue={current?.line2 ?? ""} />
-
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Código postal" name="postalCode" placeholder="1234-567" defaultValue={current?.postalCode} required />
-            <Field label="Localidade" name="city" defaultValue={current?.city} required />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="País" name="country" maxLength={2} defaultValue={current?.country ?? "PT"} required />
-            <Field label="Telemóvel" name="phone" defaultValue={current?.phone} required />
-          </div>
-
-          <label className="flex items-center gap-3 text-sm">
-            <input type="checkbox" name="isDefault" defaultChecked={current?.isDefault} className="size-4 accent-ink" />
-            Usar como morada principal
-          </label>
-
-          <div className="flex gap-3">
-            <button
-              type="submit"
-              disabled={save.isPending}
-              className="bg-ink px-6 py-3 text-sm text-bg transition enabled:hover:opacity-90 disabled:opacity-40"
-            >
-              {save.isPending ? "A guardar…" : "Guardar"}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setEditing(null);
-                setError(null);
-              }}
-              className="border border-line px-6 py-3 text-sm transition hover:border-ink"
-            >
-              Cancelar
-            </button>
-          </div>
-        </form>
+        <div className="mt-10">
+          <AddressForm
+            address={current}
+            error={error}
+            saving={save.isPending}
+            onSubmit={(values) => save.mutate(values)}
+            onCancel={() => {
+              setEditing(null);
+              setError(null);
+            }}
+          />
+        </div>
       )}
 
       <div className="mt-10 space-y-px bg-line">
