@@ -72,6 +72,22 @@ public class TokenService(
         await context.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task RevokeAllForUserAsync(string userId, CancellationToken cancellationToken)
+    {
+        var now = clock.GetUtcNow();
+
+        var active = await context.Set<RefreshToken>()
+            .Where(t => t.UserId == userId && t.RevokedAt == null)
+            .ToListAsync(cancellationToken);
+
+        foreach (var token in active)
+        {
+            token.RevokedAt = now;
+        }
+
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
     private async Task<(string Token, DateTimeOffset ExpiresAt)> CreateAccessTokenAsync(
         ApplicationUser user,
         DateTimeOffset now)

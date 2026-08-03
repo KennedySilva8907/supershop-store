@@ -1,5 +1,7 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -82,6 +84,29 @@ public class SuperShopFactory : WebApplicationFactory<Program>, IAsyncLifetime
         }
 
         return await Authenticate(client, email, "Password123!");
+    }
+
+    public async Task ResetPasswordAsync(string email, string newPassword)
+    {
+        string token;
+
+        using (var scope = Services.CreateScope())
+        {
+            var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var user = await users.FindByEmailAsync(email);
+
+            token = WebEncoders.Base64UrlEncode(
+                Encoding.UTF8.GetBytes(await users.GeneratePasswordResetTokenAsync(user!)));
+        }
+
+        var response = await CreateClient().PostAsJsonAsync("/api/auth/reset-password", new
+        {
+            email,
+            token,
+            newPassword
+        });
+
+        response.EnsureSuccessStatusCode();
     }
 
     public Task<HttpClient> SignInAsAdminAsync() =>

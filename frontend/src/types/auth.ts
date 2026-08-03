@@ -31,3 +31,8 @@ export interface UpdateProfilePayload {
   lastName: string;
   phoneNumber: string | null;
 }
+
+export interface ChangePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
+}

@@ -95,6 +95,29 @@ public class AuthServiceTests
         Assert.Null(gateway.LastProfile!.PhoneNumber);
     }
 
+    [Fact]
+    public async Task Reusing_the_same_password_is_refused_before_it_reaches_the_gateway()
+    {
+        var gateway = new RecordingGateway();
+        var service = new AuthService(gateway);
+
+        await Assert.ThrowsAsync<ConflictException>(() =>
+            service.ChangePasswordAsync("1", new ChangePasswordRequest("Password123!", "Password123!")));
+
+        Assert.Null(gateway.LastPasswordChange);
+    }
+
+    [Fact]
+    public async Task A_different_password_goes_through()
+    {
+        var gateway = new RecordingGateway();
+        var service = new AuthService(gateway);
+
+        await service.ChangePasswordAsync("1", new ChangePasswordRequest("Password123!", "Outra456!"));
+
+        Assert.Equal("Outra456!", gateway.LastPasswordChange!.NewPassword);
+    }
+
     private sealed class RecordingGateway : IIdentityGateway
     {
         public RegisterRequest? LastRegister { get; private set; }
@@ -103,6 +126,7 @@ public class AuthServiceTests
         public string? LastLogoutToken { get; private set; }
         public string? LastForgotEmail { get; private set; }
         public UpdateProfileRequest? LastProfile { get; private set; }
+        public ChangePasswordRequest? LastPasswordChange { get; private set; }
 
         private static readonly UserDto Sample =
             new("1", "kennedy@example.pt", "Kennedy", "Silva", null, true, ["Customer"]);
@@ -153,6 +177,15 @@ public class AuthServiceTests
         {
             LastProfile = request;
             return Task.FromResult(Sample);
+        }
+
+        public Task<(UserDto User, AuthTokens Tokens)> ChangePasswordAsync(
+            string userId,
+            ChangePasswordRequest request,
+            CancellationToken cancellationToken)
+        {
+            LastPasswordChange = request;
+            return Task.FromResult((Sample, Tokens));
         }
 
         public Task ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken) =>

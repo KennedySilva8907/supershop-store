@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using SuperShop.Api.Auth;
 using SuperShop.Application.Auth;
 
 namespace SuperShop.Api.Controllers;
@@ -10,8 +11,6 @@ namespace SuperShop.Api.Controllers;
 [Route("api/auth")]
 public class AuthController(AuthService auth, IConfiguration configuration) : ControllerBase
 {
-    private const string RefreshCookie = "supershop_refresh";
-
     [HttpPost("register")]
     [EnableRateLimiting("auth")]
     public async Task<ActionResult<UserDto>> Register(
@@ -34,7 +33,7 @@ public class AuthController(AuthService auth, IConfiguration configuration) : Co
     [HttpPost("refresh")]
     public async Task<ActionResult<AuthResponse>> Refresh(CancellationToken cancellationToken)
     {
-        var (user, tokens) = await auth.RefreshAsync(Request.Cookies[RefreshCookie], cancellationToken);
+        var (user, tokens) = await auth.RefreshAsync(RefreshCookie.Read(Request), cancellationToken);
         SetRefreshCookie(tokens.RefreshToken);
 
         return Ok(new AuthResponse(tokens.AccessToken, tokens.AccessTokenExpiresAt, user));
@@ -44,8 +43,8 @@ public class AuthController(AuthService auth, IConfiguration configuration) : Co
     [Authorize]
     public async Task<IActionResult> Logout(CancellationToken cancellationToken)
     {
-        await auth.LogoutAsync(Request.Cookies[RefreshCookie], cancellationToken);
-        Response.Cookies.Delete(RefreshCookie, BuildCookieOptions());
+        await auth.LogoutAsync(RefreshCookie.Read(Request), cancellationToken);
+        RefreshCookie.Delete(HttpContext, configuration);
 
         return NoContent();
     }
@@ -99,20 +98,5 @@ public class AuthController(AuthService auth, IConfiguration configuration) : Co
         Ok(await auth.GetProfileAsync(User.FindFirstValue(ClaimTypes.NameIdentifier)!, cancellationToken));
 
     private void SetRefreshCookie(string token) =>
-        Response.Cookies.Append(RefreshCookie, token, BuildCookieOptions());
-
-    private CookieOptions BuildCookieOptions()
-    {
-        var secure = Request.IsHttps;
-        var crossSite = configuration.GetValue("Auth:FrontendOnAnotherSite", false);
-
-        return new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = secure,
-            SameSite = crossSite && secure ? SameSiteMode.None : SameSiteMode.Strict,
-            Path = "/api/auth",
-            Expires = DateTimeOffset.UtcNow.AddDays(7)
-        };
-    }
+        RefreshCookie.Set(HttpContext, configuration, token);
 }
