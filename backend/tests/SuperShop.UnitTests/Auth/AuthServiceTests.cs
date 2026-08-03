@@ -68,6 +68,33 @@ public class AuthServiceTests
         Assert.Equal("kennedy@example.pt", gateway.LastForgotEmail);
     }
 
+    [Fact]
+    public async Task Update_profile_trims_the_names_before_saving()
+    {
+        var gateway = new RecordingGateway();
+        var service = new AuthService(gateway);
+
+        await service.UpdateProfileAsync("1", new UpdateProfileRequest("  Kennedy  ", "  Silva  ", " 912345678 "));
+
+        Assert.Equal("Kennedy", gateway.LastProfile!.FirstName);
+        Assert.Equal("Silva", gateway.LastProfile.LastName);
+        Assert.Equal("912345678", gateway.LastProfile.PhoneNumber);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task An_empty_phone_is_stored_as_nothing_rather_than_as_spaces(string? phone)
+    {
+        var gateway = new RecordingGateway();
+        var service = new AuthService(gateway);
+
+        await service.UpdateProfileAsync("1", new UpdateProfileRequest("Kennedy", "Silva", phone));
+
+        Assert.Null(gateway.LastProfile!.PhoneNumber);
+    }
+
     private sealed class RecordingGateway : IIdentityGateway
     {
         public RegisterRequest? LastRegister { get; private set; }
@@ -75,6 +102,7 @@ public class AuthServiceTests
         public string? LastRefreshToken { get; private set; }
         public string? LastLogoutToken { get; private set; }
         public string? LastForgotEmail { get; private set; }
+        public UpdateProfileRequest? LastProfile { get; private set; }
 
         private static readonly UserDto Sample =
             new("1", "kennedy@example.pt", "Kennedy", "Silva", null, true, ["Customer"]);
@@ -116,6 +144,15 @@ public class AuthServiceTests
         {
             LastForgotEmail = email;
             return Task.CompletedTask;
+        }
+
+        public Task<UserDto> UpdateProfileAsync(
+            string userId,
+            UpdateProfileRequest request,
+            CancellationToken cancellationToken)
+        {
+            LastProfile = request;
+            return Task.FromResult(Sample);
         }
 
         public Task ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken) =>

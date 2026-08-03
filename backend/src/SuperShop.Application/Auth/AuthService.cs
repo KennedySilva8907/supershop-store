@@ -13,6 +13,7 @@ public interface IIdentityGateway
     Task ForgotPasswordAsync(string email, CancellationToken cancellationToken);
     Task ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken);
     Task<UserDto> GetProfileAsync(string userId, CancellationToken cancellationToken);
+    Task<UserDto> UpdateProfileAsync(string userId, UpdateProfileRequest request, CancellationToken cancellationToken);
 }
 
 public class AuthService(IIdentityGateway identity)
@@ -51,6 +52,19 @@ public class AuthService(IIdentityGateway identity)
 
     public Task<UserDto> GetProfileAsync(string userId, CancellationToken cancellationToken = default) =>
         identity.GetProfileAsync(userId, cancellationToken);
+
+    public Task<UserDto> UpdateProfileAsync(
+        string userId,
+        UpdateProfileRequest request,
+        CancellationToken cancellationToken = default) =>
+        identity.UpdateProfileAsync(userId, Clean(request), cancellationToken);
+
+    private static UpdateProfileRequest Clean(UpdateProfileRequest request) => request with
+    {
+        FirstName = request.FirstName.Trim(),
+        LastName = request.LastName.Trim(),
+        PhoneNumber = string.IsNullOrWhiteSpace(request.PhoneNumber) ? null : request.PhoneNumber.Trim()
+    };
 
     private static string Normalise(string email) => email.Trim().ToLowerInvariant();
 }

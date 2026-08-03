@@ -10,6 +10,8 @@ public record ForgotPasswordRequest(string Email);
 
 public record ConfirmEmailRequest(string UserId, string Token);
 
+public record UpdateProfileRequest(string FirstName, string LastName, string? PhoneNumber);
+
 public record AuthTokens(string AccessToken, DateTimeOffset AccessTokenExpiresAt, string RefreshToken);
 
 public record UserDto(

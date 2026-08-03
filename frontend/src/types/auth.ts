@@ -25,3 +25,9 @@ export interface LoginPayload {
   email: string;
   password: string;
 }
+
+export interface UpdateProfilePayload {
+  firstName: string;
+  lastName: string;
+  phoneNumber: string | null;
+}

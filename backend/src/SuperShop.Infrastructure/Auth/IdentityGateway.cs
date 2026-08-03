@@ -143,6 +143,43 @@ public class IdentityGateway(
         return await ToDtoAsync(user);
     }
 
+    public async Task<UserDto> UpdateProfileAsync(
+        string userId,
+        UpdateProfileRequest request,
+        CancellationToken cancellationToken)
+    {
+        var user = await userManager.FindByIdAsync(userId)
+            ?? throw NotFoundException.For("Conta", userId);
+
+        if (string.IsNullOrWhiteSpace(request.FirstName) || string.IsNullOrWhiteSpace(request.LastName))
+        {
+            throw new ConflictException("O nome e o apelido são obrigatórios.");
+        }
+
+        if (request.FirstName.Length > 60 || request.LastName.Length > 60)
+        {
+            throw new ConflictException("O nome e o apelido têm no máximo 60 caracteres.");
+        }
+
+        if (request.PhoneNumber is { Length: > 20 })
+        {
+            throw new ConflictException("O telemóvel tem no máximo 20 caracteres.");
+        }
+
+        user.FirstName = request.FirstName;
+        user.LastName = request.LastName;
+        user.PhoneNumber = request.PhoneNumber;
+
+        var result = await userManager.UpdateAsync(user);
+
+        if (!result.Succeeded)
+        {
+            throw new ConflictException(string.Join(" ", result.Errors.Select(e => e.Description)));
+        }
+
+        return await ToDtoAsync(user);
+    }
+
     private async Task SendConfirmationAsync(ApplicationUser user, CancellationToken cancellationToken)
     {
         var token = Encode(await userManager.GenerateEmailConfirmationTokenAsync(user));
