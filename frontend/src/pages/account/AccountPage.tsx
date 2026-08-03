@@ -151,6 +151,13 @@ export function AccountPage() {
               Gerir moradas
             </Link>
 
+            <Link
+              to="/conta/password"
+              className="border border-line px-6 py-3 text-sm transition hover:border-ink"
+            >
+              Mudar password
+            </Link>
+
             <button
               type="button"
               onClick={onSignOut}

@@ -133,6 +133,28 @@ public class IdentityGateway(
         {
             throw new ConflictException(string.Join(" ", result.Errors.Select(e => e.Description)));
         }
+
+        await tokens.RevokeAllForUserAsync(user.Id, cancellationToken);
+    }
+
+    public async Task<(UserDto User, AuthTokens Tokens)> ChangePasswordAsync(
+        string userId,
+        ChangePasswordRequest request,
+        CancellationToken cancellationToken)
+    {
+        var user = await userManager.FindByIdAsync(userId)
+            ?? throw NotFoundException.For("Conta", userId);
+
+        var result = await userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+
+        if (!result.Succeeded)
+        {
+            throw new ConflictException(string.Join(" ", result.Errors.Select(e => e.Description)));
+        }
+
+        await tokens.RevokeAllForUserAsync(user.Id, cancellationToken);
+
+        return (await ToDtoAsync(user), await tokens.IssueAsync(user, cancellationToken));
     }
 
     public async Task<UserDto> GetProfileAsync(string userId, CancellationToken cancellationToken)

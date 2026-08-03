@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { ApiError, apiSend, configureAuth, postRaw } from "../../lib/apiClient";
 import type {
   AuthResponse,
+  ChangePasswordPayload,
   LoginPayload,
   RegisterPayload,
   UpdateProfilePayload,
@@ -15,6 +16,7 @@ interface AuthState {
   signIn: (payload: LoginPayload) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<User>;
   updateProfile: (payload: UpdateProfilePayload) => Promise<void>;
+  changePassword: (payload: ChangePasswordPayload) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -77,6 +79,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(await apiSend<User>("PUT", "/me", payload));
   }, []);
 
+  const changePassword = useCallback(
+    async (payload: ChangePasswordPayload) =>
+      apply(await apiSend<AuthResponse>("PUT", "/me/password", payload)),
+    [apply],
+  );
+
   const signOut = useCallback(async () => {
     try {
       await apiSend("POST", "/auth/logout");
@@ -95,9 +103,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signIn,
       register,
       updateProfile,
+      changePassword,
       signOut,
     }),
-    [user, status, signIn, register, updateProfile, signOut],
+    [user, status, signIn, register, updateProfile, changePassword, signOut],
   );
 
   return <AuthContext value={value}>{children}</AuthContext>;

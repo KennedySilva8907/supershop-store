@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SuperShop.Api.Auth;
 using SuperShop.Application.Account;
 using SuperShop.Application.Auth;
 
@@ -9,7 +10,10 @@ namespace SuperShop.Api.Controllers;
 [ApiController]
 [Route("api/me")]
 [Authorize(Policy = "RequireCustomer")]
-public class AccountController(AddressService addresses, AuthService auth) : ControllerBase
+public class AccountController(
+    AddressService addresses,
+    AuthService auth,
+    IConfiguration configuration) : ControllerBase
 {
     private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
@@ -18,6 +22,17 @@ public class AccountController(AddressService addresses, AuthService auth) : Con
         UpdateProfileRequest request,
         CancellationToken cancellationToken) =>
         Ok(await auth.UpdateProfileAsync(UserId, request, cancellationToken));
+
+    [HttpPut("password")]
+    public async Task<ActionResult<AuthResponse>> ChangePassword(
+        ChangePasswordRequest request,
+        CancellationToken cancellationToken)
+    {
+        var (user, tokens) = await auth.ChangePasswordAsync(UserId, request, cancellationToken);
+        RefreshCookie.Set(HttpContext, configuration, tokens.RefreshToken);
+
+        return Ok(new AuthResponse(tokens.AccessToken, tokens.AccessTokenExpiresAt, user));
+    }
 
     [HttpGet("addresses")]
     public async Task<ActionResult<IReadOnlyList<AddressDto>>> List(CancellationToken cancellationToken) =>

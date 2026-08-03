@@ -12,6 +12,8 @@ public record ConfirmEmailRequest(string UserId, string Token);
 
 public record UpdateProfileRequest(string FirstName, string LastName, string? PhoneNumber);
 
+public record ChangePasswordRequest(string CurrentPassword, string NewPassword);
+
 public record AuthTokens(string AccessToken, DateTimeOffset AccessTokenExpiresAt, string RefreshToken);
 
 public record UserDto(

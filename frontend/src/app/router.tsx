@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router";
 import { RequireAuth } from "../features/auth/RequireAuth";
 import { AccountPage } from "../pages/account/AccountPage";
 import { AddressesPage } from "../pages/account/AddressesPage";
+import { ChangePasswordPage } from "../pages/account/ChangePasswordPage";
 import { OrdersPage } from "../pages/account/OrdersPage";
 import { ConfirmEmailPage } from "../pages/auth/ConfirmEmailPage";
 import { ForgotPasswordPage } from "../pages/auth/ForgotPasswordPage";
@@ -44,6 +45,7 @@ export const router = createBrowserRouter([
           { path: "encomenda/:orderNumber", element: <OrderPage /> },
           { path: "conta", element: <AccountPage /> },
           { path: "conta/moradas", element: <AddressesPage /> },
+          { path: "conta/password", element: <ChangePasswordPage /> },
           { path: "conta/encomendas", element: <OrdersPage /> },
         ],
       },

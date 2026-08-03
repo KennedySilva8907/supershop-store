@@ -14,6 +14,11 @@ public interface IIdentityGateway
     Task ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken);
     Task<UserDto> GetProfileAsync(string userId, CancellationToken cancellationToken);
     Task<UserDto> UpdateProfileAsync(string userId, UpdateProfileRequest request, CancellationToken cancellationToken);
+
+    Task<(UserDto User, AuthTokens Tokens)> ChangePasswordAsync(
+        string userId,
+        ChangePasswordRequest request,
+        CancellationToken cancellationToken);
 }
 
 public class AuthService(IIdentityGateway identity)
@@ -58,6 +63,14 @@ public class AuthService(IIdentityGateway identity)
         UpdateProfileRequest request,
         CancellationToken cancellationToken = default) =>
         identity.UpdateProfileAsync(userId, Clean(request), cancellationToken);
+
+    public Task<(UserDto User, AuthTokens Tokens)> ChangePasswordAsync(
+        string userId,
+        ChangePasswordRequest request,
+        CancellationToken cancellationToken = default) =>
+        request.CurrentPassword == request.NewPassword
+            ? throw new ConflictException("A password nova tem de ser diferente da atual.")
+            : identity.ChangePasswordAsync(userId, request, cancellationToken);
 
     private static UpdateProfileRequest Clean(UpdateProfileRequest request) => request with
     {

@@ -51,6 +51,7 @@ public static class DependencyInjection
             })
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<SuperShopDbContext>()
+            .AddErrorDescriber<PortugueseIdentityErrors>()
             .AddDefaultTokenProviders();
 
         services.AddScoped<ICatalogRepository, CatalogRepository>();
