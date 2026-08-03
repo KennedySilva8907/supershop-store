@@ -20,7 +20,3 @@ public record SaveAddressRequest(
     string Country,
     string Phone,
     bool IsDefault);
-
-public record UpdateProfileRequest(string FirstName, string LastName, string? PhoneNumber);
-
-public record ChangePasswordRequest(string CurrentPassword, string NewPassword);

@@ -1,6 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { ApiError, apiSend, configureAuth, postRaw } from "../../lib/apiClient";
-import type { AuthResponse, LoginPayload, RegisterPayload, User } from "../../types/auth";
+import type {
+  AuthResponse,
+  LoginPayload,
+  RegisterPayload,
+  UpdateProfilePayload,
+  User,
+} from "../../types/auth";
 
 interface AuthState {
   user: User | null;
@@ -8,6 +14,7 @@ interface AuthState {
   isAdmin: boolean;
   signIn: (payload: LoginPayload) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<User>;
+  updateProfile: (payload: UpdateProfilePayload) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -66,6 +73,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  const updateProfile = useCallback(async (payload: UpdateProfilePayload) => {
+    setUser(await apiSend<User>("PUT", "/me", payload));
+  }, []);
+
   const signOut = useCallback(async () => {
     try {
       await apiSend("POST", "/auth/logout");
@@ -83,9 +94,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isAdmin: user?.roles.includes("Admin") ?? false,
       signIn,
       register,
+      updateProfile,
       signOut,
     }),
-    [user, status, signIn, register, signOut],
+    [user, status, signIn, register, updateProfile, signOut],
   );
 
   return <AuthContext value={value}>{children}</AuthContext>;
