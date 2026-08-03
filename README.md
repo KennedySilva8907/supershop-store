@@ -106,6 +106,28 @@ fresh process, a fresh connection pool and a correct clock.
 A pooled connection string keeps the database from being reconnected on every
 request, which matters more than either of these.
 
+### Images
+
+Cloudinary builds each size the first time somebody asks for it. Measured on a
+catalogue image, same URL, from the same machine:
+
+| | |
+| --- | --- |
+| Size already cached | 40 to 77 ms |
+| Size never requested before | 529 ms |
+| The same one immediately after | 41 ms |
+
+On a shop with little traffic the cache expires, so the first visitor after a
+quiet stretch pays that on every image on the page. Asking for all of them once
+puts them back:
+
+```bash
+./scripts/warm-images.sh
+```
+
+Worth running after adding products, and after changing the widths in
+`cloudinary.ts`, since a new width has never been built for any image.
+
 ## Deployment
 
 Migrations are applied by explicit command, never automatically on startup:
