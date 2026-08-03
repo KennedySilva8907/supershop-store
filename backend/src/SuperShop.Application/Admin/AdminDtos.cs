@@ -29,6 +29,18 @@ public record SaveProductRequest(
 
 public record SetProductStatusRequest(bool IsActive);
 
+public record AdminProductFormDto(
+    int Id,
+    string Name,
+    string Slug,
+    string Description,
+    decimal Price,
+    decimal? CompareAtPrice,
+    int CategoryId,
+    int CollectionId,
+    bool IsActive,
+    bool IsFeatured);
+
 public record AdminVariantDto(int Id, string SizeLabel, int SizeSortOrder, string Sku, int Stock);
 
 public record SetStockRequest(int Stock);

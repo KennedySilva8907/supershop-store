@@ -89,7 +89,7 @@ export function OrderPage() {
             {confirm.isPending ? "A confirmar…" : "Simular pagamento"}
           </button>
           <p className="mt-2 text-xs text-muted">
-            Todos os pagamentos são simulados. Nenhum dinheiro muda de mãos.
+            Os pagamentos são simulados, não são cobrados a sério.
           </p>
         </section>
       )}
