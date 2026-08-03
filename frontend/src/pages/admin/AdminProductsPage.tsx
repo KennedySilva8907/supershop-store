@@ -25,13 +25,18 @@ export function AdminProductsPage() {
     <div className="px-8 py-6">
       <div className="flex items-center justify-between gap-6">
         <h1 className="text-2xl">Produtos</h1>
-        <input
-          type="search"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Procurar por nome ou endereço"
-          className="w-72 border border-line bg-bg px-3 py-2 text-sm"
-        />
+        <div className="flex items-center gap-3">
+          <input
+            type="search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Procurar por nome ou endereço"
+            className="w-72 border border-line bg-bg px-3 py-2 text-sm"
+          />
+          <Link to="/admin/produtos/novo" className="bg-ink px-5 py-2 text-sm text-bg transition hover:opacity-90">
+            Novo produto
+          </Link>
+        </div>
       </div>
 
       {isPending && <div className="mt-6 h-40 animate-pulse bg-surface" />}
@@ -75,7 +80,13 @@ export function AdminProductsPage() {
                     {product.isActive ? "ativo" : "inativo"}
                   </span>
                 </td>
-                <td className="px-4 py-2 text-right">
+                <td className="whitespace-nowrap px-4 py-2 text-right">
+                  <Link
+                    to={`/admin/produtos/${product.id}`}
+                    className="mr-4 text-xs underline underline-offset-4"
+                  >
+                    Editar
+                  </Link>
                   <Link
                     to={`/admin/produtos/${product.id}/stock`}
                     className="mr-4 text-xs underline underline-offset-4"

@@ -38,16 +38,17 @@ const NO_RETRY = ["/auth/refresh", "/auth/login", "/auth/register"];
 async function request(method: string, path: string, body?: unknown, signal?: AbortSignal) {
   const headers: Record<string, string> = { Accept: "application/json" };
   const token = readAccessToken();
+  const isForm = body instanceof FormData;
 
   if (token) headers.Authorization = `Bearer ${token}`;
-  if (body !== undefined) headers["Content-Type"] = "application/json";
+  if (body !== undefined && !isForm) headers["Content-Type"] = "application/json";
 
   return fetch(`${BASE_URL}/api${path}`, {
     method,
     headers,
     signal,
     credentials: "include",
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
   });
 }
 
@@ -80,6 +81,8 @@ async function send<T>(method: string, path: string, body?: unknown, signal?: Ab
 export const apiGet = <T>(path: string, signal?: AbortSignal) => send<T>("GET", path, undefined, signal);
 
 export const apiSend = <T>(method: string, path: string, body?: unknown) => send<T>(method, path, body);
+
+export const apiUpload = <T>(path: string, form: FormData) => send<T>("POST", path, form);
 
 export async function postRaw<T>(path: string): Promise<T> {
   const response = await fetch(`${BASE_URL}/api${path}`, {

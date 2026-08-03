@@ -21,6 +21,12 @@ public class AdminController(AdminService admin) : ControllerBase
         CancellationToken cancellationToken) =>
         Ok(await admin.ListProductsAsync(search, cancellationToken));
 
+    [HttpGet("products/{id:int}")]
+    public async Task<ActionResult<AdminProductFormDto>> GetProduct(
+        int id,
+        CancellationToken cancellationToken) =>
+        Ok(await admin.GetProductAsync(id, cancellationToken));
+
     [HttpPost("products")]
     public async Task<ActionResult<AdminProductDto>> CreateProduct(
         SaveProductRequest request,
@@ -91,6 +97,13 @@ public class AdminController(AdminService admin) : ControllerBase
 
         return Ok(await admin.UploadImageAsync(id, stream, file.FileName, altText, cancellationToken));
     }
+
+    [HttpPatch("products/{id:int}/images/{imageId:int}/primary")]
+    public async Task<ActionResult<AdminImageDto>> SetPrimaryImage(
+        int id,
+        int imageId,
+        CancellationToken cancellationToken) =>
+        Ok(await admin.SetPrimaryImageAsync(id, imageId, cancellationToken));
 
     [HttpDelete("products/{id:int}/images/{imageId:int}")]
     public async Task<IActionResult> RemoveImage(int id, int imageId, CancellationToken cancellationToken)

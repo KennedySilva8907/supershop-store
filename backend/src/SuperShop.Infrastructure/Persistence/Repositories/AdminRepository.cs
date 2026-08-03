@@ -81,6 +81,38 @@ public class AdminRepository(SuperShopDbContext context, TimeProvider clock) : I
         return await LoadProductAsync(product.Id, cancellationToken);
     }
 
+    public async Task<AdminProductFormDto> GetProductAsync(int id, CancellationToken cancellationToken) =>
+        await context.Products
+            .AsNoTracking()
+            .Where(p => p.Id == id)
+            .Select(p => new AdminProductFormDto(
+                p.Id, p.Name, p.Slug, p.Description, p.Price, p.CompareAtPrice,
+                p.CategoryId, p.CollectionId, p.IsActive, p.IsFeatured))
+            .FirstOrDefaultAsync(cancellationToken)
+            ?? throw NotFoundException.For("Produto", id);
+
+    public async Task<AdminImageDto> SetPrimaryImageAsync(
+        int productId,
+        int imageId,
+        CancellationToken cancellationToken)
+    {
+        var images = await context.ProductImages
+            .Where(i => i.ProductId == productId)
+            .ToListAsync(cancellationToken);
+
+        var chosen = images.FirstOrDefault(i => i.Id == imageId)
+            ?? throw NotFoundException.For("Imagem", imageId);
+
+        foreach (var image in images)
+        {
+            image.IsPrimary = image.Id == imageId;
+        }
+
+        await context.SaveChangesAsync(cancellationToken);
+
+        return new AdminImageDto(chosen.Id, chosen.PublicId, chosen.AltText, true, chosen.SortOrder);
+    }
+
     public async Task<AdminProductDto> UpdateProductAsync(
         int id,
         SaveProductRequest request,

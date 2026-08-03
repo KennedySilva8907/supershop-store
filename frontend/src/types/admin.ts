@@ -43,6 +43,31 @@ export interface AdminOrder {
   nextStates: number[];
 }
 
+export interface AdminProductForm {
+  id: number;
+  name: string;
+  slug: string;
+  description: string;
+  price: number;
+  compareAtPrice: number | null;
+  categoryId: number;
+  collectionId: number;
+  isActive: boolean;
+  isFeatured: boolean;
+}
+
+export interface Category {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+export interface Collection {
+  id: number;
+  name: string;
+  slug: string;
+}
+
 export interface AdminOrderLine {
   productName: string;
   collectionName: string;

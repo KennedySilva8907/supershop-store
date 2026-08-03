@@ -24,6 +24,10 @@ public interface IAdminRepository
 
     Task<IReadOnlyList<AdminOrderDto>> ListOrdersAsync(OrderStatus? status, CancellationToken cancellationToken);
 
+    Task<AdminProductFormDto> GetProductAsync(int id, CancellationToken cancellationToken);
+
+    Task<AdminImageDto> SetPrimaryImageAsync(int productId, int imageId, CancellationToken cancellationToken);
+
     Task<AdminOrderDetailDto> GetOrderAsync(int orderId, CancellationToken cancellationToken);
 
     Task<AdminOrderDto> SetOrderStatusAsync(int orderId, OrderStatus status, CancellationToken cancellationToken);
@@ -99,6 +103,15 @@ public class AdminService(IAdminRepository repository, IImageStorage storage)
         OrderStatus? status,
         CancellationToken cancellationToken = default) =>
         repository.ListOrdersAsync(status, cancellationToken);
+
+    public Task<AdminProductFormDto> GetProductAsync(int id, CancellationToken cancellationToken = default) =>
+        repository.GetProductAsync(id, cancellationToken);
+
+    public Task<AdminImageDto> SetPrimaryImageAsync(
+        int productId,
+        int imageId,
+        CancellationToken cancellationToken = default) =>
+        repository.SetPrimaryImageAsync(productId, imageId, cancellationToken);
 
     public Task<AdminOrderDetailDto> GetOrderAsync(int orderId, CancellationToken cancellationToken = default) =>
         repository.GetOrderAsync(orderId, cancellationToken);

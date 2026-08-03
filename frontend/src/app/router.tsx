@@ -17,6 +17,7 @@ import { OrderPage } from "../pages/order/OrderPage";
 import { ProductPage } from "../pages/product/ProductPage";
 import { AdminLayout } from "./AdminLayout";
 import { AdminOrderPage } from "../pages/admin/AdminOrderPage";
+import { AdminProductFormPage } from "../pages/admin/AdminProductFormPage";
 import { AdminOrdersPage } from "../pages/admin/AdminOrdersPage";
 import { AdminProductsPage } from "../pages/admin/AdminProductsPage";
 import { DashboardPage } from "../pages/admin/DashboardPage";
@@ -60,6 +61,8 @@ export const router = createBrowserRouter([
         children: [
           { path: "admin", element: <DashboardPage /> },
           { path: "admin/produtos", element: <AdminProductsPage /> },
+          { path: "admin/produtos/novo", element: <AdminProductFormPage /> },
+          { path: "admin/produtos/:id", element: <AdminProductFormPage /> },
           { path: "admin/produtos/:id/stock", element: <StockGridPage /> },
           { path: "admin/encomendas", element: <AdminOrdersPage /> },
           { path: "admin/encomendas/:id", element: <AdminOrderPage /> },
