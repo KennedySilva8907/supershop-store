@@ -43,6 +43,53 @@ export interface AdminOrder {
   nextStates: number[];
 }
 
+export interface AdminOrderLine {
+  productName: string;
+  collectionName: string;
+  sizeLabel: string;
+  sku: string;
+  unitPrice: number;
+  quantity: number;
+  lineTotal: number;
+  imagePublicId: string | null;
+}
+
+export interface AdminOrderPayment {
+  method: number;
+  status: number;
+  amount: number;
+  mbEntity: string | null;
+  mbReference: string | null;
+  mbWayPhone: string | null;
+  cardLast4: string | null;
+  expiresAt: string | null;
+  confirmedAt: string | null;
+}
+
+export interface AdminOrderDetail {
+  id: number;
+  orderNumber: string;
+  status: number;
+  customerName: string;
+  customerEmail: string;
+  subtotal: number;
+  shippingCost: number;
+  total: number;
+  shippingFullName: string;
+  shippingLine1: string;
+  shippingLine2: string | null;
+  shippingPostalCode: string;
+  shippingCity: string;
+  shippingCountry: string;
+  shippingPhone: string;
+  createdAt: string;
+  paidAt: string | null;
+  shippedAt: string | null;
+  items: AdminOrderLine[];
+  payment: AdminOrderPayment;
+  nextStates: number[];
+}
+
 export interface LowStock {
   variantId: number;
   productName: string;

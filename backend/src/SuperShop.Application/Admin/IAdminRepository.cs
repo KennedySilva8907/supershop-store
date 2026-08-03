@@ -24,6 +24,8 @@ public interface IAdminRepository
 
     Task<IReadOnlyList<AdminOrderDto>> ListOrdersAsync(OrderStatus? status, CancellationToken cancellationToken);
 
+    Task<AdminOrderDetailDto> GetOrderAsync(int orderId, CancellationToken cancellationToken);
+
     Task<AdminOrderDto> SetOrderStatusAsync(int orderId, OrderStatus status, CancellationToken cancellationToken);
 
     Task<DashboardDto> GetDashboardAsync(CancellationToken cancellationToken);
@@ -97,6 +99,9 @@ public class AdminService(IAdminRepository repository, IImageStorage storage)
         OrderStatus? status,
         CancellationToken cancellationToken = default) =>
         repository.ListOrdersAsync(status, cancellationToken);
+
+    public Task<AdminOrderDetailDto> GetOrderAsync(int orderId, CancellationToken cancellationToken = default) =>
+        repository.GetOrderAsync(orderId, cancellationToken);
 
     public Task<AdminOrderDto> SetOrderStatusAsync(
         int orderId,

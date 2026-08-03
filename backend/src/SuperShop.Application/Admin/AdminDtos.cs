@@ -1,3 +1,4 @@
+using SuperShop.Application.Orders;
 using SuperShop.Domain.Enums;
 
 namespace SuperShop.Application.Admin;
@@ -45,6 +46,31 @@ public record AdminOrderDto(
     PaymentMethod PaymentMethod,
     PaymentStatus PaymentStatus,
     DateTimeOffset CreatedAt)
+{
+    public IReadOnlyList<OrderStatus> NextStates { get; init; } = [];
+}
+
+public record AdminOrderDetailDto(
+    int Id,
+    string OrderNumber,
+    OrderStatus Status,
+    string CustomerName,
+    string CustomerEmail,
+    decimal Subtotal,
+    decimal ShippingCost,
+    decimal Total,
+    string ShippingFullName,
+    string ShippingLine1,
+    string? ShippingLine2,
+    string ShippingPostalCode,
+    string ShippingCity,
+    string ShippingCountry,
+    string ShippingPhone,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? PaidAt,
+    DateTimeOffset? ShippedAt,
+    IReadOnlyList<OrderLineDto> Items,
+    PaymentDto Payment)
 {
     public IReadOnlyList<OrderStatus> NextStates { get; init; } = [];
 }

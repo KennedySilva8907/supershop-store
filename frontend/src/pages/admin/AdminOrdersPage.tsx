@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { Link } from "react-router";
 import { ApiError, apiGet, apiSend } from "../../lib/apiClient";
 import { formatDate, formatPrice } from "../../lib/format";
 import { METHOD_LABELS, STATUS_LABELS } from "../../types/cart";
@@ -57,7 +58,8 @@ export function AdminOrdersPage() {
       {isPending && <div className="mt-6 h-40 animate-pulse bg-surface" />}
 
       {orders && (
-        <table className="mt-6 w-full border border-line text-sm">
+        <div className="mt-6 overflow-x-auto">
+        <table className="w-full min-w-[52rem] border border-line text-sm">
           <thead className="bg-surface text-left">
             <tr>
               <Th>Número</Th>
@@ -73,7 +75,14 @@ export function AdminOrdersPage() {
           <tbody>
             {orders.map((order) => (
               <tr key={order.id} className="border-t border-line">
-                <td className="px-4 py-2 font-mono text-xs">{order.orderNumber}</td>
+                <td className="whitespace-nowrap px-4 py-2 font-mono text-xs">
+                  <Link
+                    to={`/admin/encomendas/${order.id}`}
+                    className="underline underline-offset-4 transition hover:text-muted"
+                  >
+                    {order.orderNumber}
+                  </Link>
+                </td>
                 <td className="px-4 py-2">{order.customerName}</td>
                 <td className="px-4 py-2 text-muted">{order.shippingCity}</td>
                 <td className="px-4 py-2 font-mono text-xs text-muted">
@@ -111,6 +120,7 @@ export function AdminOrdersPage() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
 
       {orders?.length === 0 && (

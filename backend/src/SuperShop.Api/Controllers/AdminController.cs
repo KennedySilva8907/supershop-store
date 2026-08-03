@@ -106,6 +106,12 @@ public class AdminController(AdminService admin) : ControllerBase
         CancellationToken cancellationToken) =>
         Ok(await admin.ListOrdersAsync(status, cancellationToken));
 
+    [HttpGet("orders/{id:int}")]
+    public async Task<ActionResult<AdminOrderDetailDto>> GetOrder(
+        int id,
+        CancellationToken cancellationToken) =>
+        Ok(await admin.GetOrderAsync(id, cancellationToken));
+
     [HttpPatch("orders/{id:int}/status")]
     public async Task<ActionResult<AdminOrderDto>> SetOrderStatus(
         int id,
