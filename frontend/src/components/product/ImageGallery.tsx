@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { cloudinaryUrl } from "../../lib/cloudinary";
+import { cloudinarySrcSet, cloudinaryUrl } from "../../lib/cloudinary";
 import type { ProductImage } from "../../types/catalog";
 
 export function ImageGallery({ images, name }: { images: ProductImage[]; name: string }) {
@@ -15,6 +15,8 @@ export function ImageGallery({ images, name }: { images: ProductImage[]; name: s
     <div className="flex flex-col gap-3">
       <img
         src={cloudinaryUrl(current.publicId, 800)}
+        srcSet={cloudinarySrcSet(current.publicId, [400, 800, 1200])}
+        sizes="(min-width: 1024px) 40vw, 100vw"
         alt={current.altText || name}
         width={800}
         height={800}

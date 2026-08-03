@@ -75,7 +75,9 @@ async function send<T>(method: string, path: string, body?: unknown, signal?: Ab
     throw new ApiError(response.status, await readProblem(response));
   }
 
-  return response.status === 204 ? (undefined as T) : ((await response.json()) as T);
+  const text = await response.text();
+
+  return text === "" ? (undefined as T) : (JSON.parse(text) as T);
 }
 
 export const apiGet = <T>(path: string, signal?: AbortSignal) => send<T>("GET", path, undefined, signal);

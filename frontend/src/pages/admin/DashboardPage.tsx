@@ -29,7 +29,11 @@ export function DashboardPage() {
 
           <section className="mt-10">
             <h2 className="text-lg">Stock baixo</h2>
-            <p className="mt-1 text-xs text-muted">Variantes ativas com menos de 5 unidades.</p>
+            <p className="mt-1 text-xs text-muted">
+              {data.lowStockTotal > data.lowStock.length
+                ? `${data.lowStockTotal} variantes ativas com menos de 5 unidades. Mostram-se as ${data.lowStock.length} com menos stock.`
+                : `${data.lowStockTotal} variantes ativas com menos de 5 unidades.`}
+            </p>
 
             {data.lowStock.length === 0 ? (
               <p className="mt-4 border border-line px-4 py-8 text-center text-sm text-muted">
@@ -48,7 +52,14 @@ export function DashboardPage() {
                 <tbody>
                   {data.lowStock.map((row) => (
                     <tr key={row.variantId} className="border-t border-line">
-                      <td className="px-4 py-2">{row.productName}</td>
+                      <td className="px-4 py-2">
+                        <Link
+                          to={`/admin/produtos/${row.productId}/stock`}
+                          className="underline-offset-4 hover:underline"
+                        >
+                          {row.productName}
+                        </Link>
+                      </td>
                       <td className="px-4 py-2 font-mono">{row.sizeLabel}</td>
                       <td className="px-4 py-2 font-mono text-xs text-muted">{row.sku}</td>
                       <td className={`px-4 py-2 text-right font-mono ${row.stock === 0 ? "text-danger" : ""}`}>

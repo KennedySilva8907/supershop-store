@@ -117,6 +117,7 @@ export interface AdminOrderDetail {
 
 export interface LowStock {
   variantId: number;
+  productId: number;
   productName: string;
   sizeLabel: string;
   sku: string;
@@ -131,6 +132,7 @@ export interface Dashboard {
   inactiveProducts: number;
   outOfStockProducts: number;
   lowStock: LowStock[];
+  lowStockTotal: number;
 }
 
 export interface SaveProduct {

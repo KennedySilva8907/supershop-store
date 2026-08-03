@@ -89,7 +89,13 @@ public record AdminOrderDetailDto(
 
 public record SetOrderStatusRequest(OrderStatus Status);
 
-public record LowStockDto(int VariantId, string ProductName, string SizeLabel, string Sku, int Stock);
+public record LowStockDto(
+    int VariantId,
+    int ProductId,
+    string ProductName,
+    string SizeLabel,
+    string Sku,
+    int Stock);
 
 public record DashboardDto(
     decimal SalesTotal,
@@ -98,4 +104,5 @@ public record DashboardDto(
     int TotalProducts,
     int InactiveProducts,
     int OutOfStockProducts,
-    IReadOnlyList<LowStockDto> LowStock);
+    IReadOnlyList<LowStockDto> LowStock,
+    int LowStockTotal);

@@ -417,13 +417,17 @@ public class AdminRepository(SuperShopDbContext context, TimeProvider clock) : I
     {
         var paidStatuses = new[] { OrderStatus.Paid, OrderStatus.Shipped, OrderStatus.Delivered };
 
-        var lowStock = await context.ProductVariants
+        var atRisk = context.ProductVariants
             .AsNoTracking()
-            .Where(v => v.Stock < AdminService.LowStockThreshold && v.Product.IsActive)
+            .Where(v => v.Stock < AdminService.LowStockThreshold && v.Product.IsActive);
+
+        var lowStockTotal = await atRisk.CountAsync(cancellationToken);
+
+        var lowStock = await atRisk
             .OrderBy(v => v.Stock)
             .ThenBy(v => v.Product.Name)
             .Take(20)
-            .Select(v => new LowStockDto(v.Id, v.Product.Name, v.Size.Label, v.Sku, v.Stock))
+            .Select(v => new LowStockDto(v.Id, v.ProductId, v.Product.Name, v.Size.Label, v.Sku, v.Stock))
             .ToListAsync(cancellationToken);
 
         return new DashboardDto(
@@ -433,7 +437,8 @@ public class AdminRepository(SuperShopDbContext context, TimeProvider clock) : I
             await context.Products.CountAsync(cancellationToken),
             await context.Products.CountAsync(p => !p.IsActive, cancellationToken),
             await context.Products.CountAsync(p => p.IsActive && !p.Variants.Any(v => v.Stock > 0), cancellationToken),
-            lowStock);
+            lowStock,
+            lowStockTotal);
     }
 
     private async Task<AdminProductDto> LoadProductAsync(int id, CancellationToken cancellationToken) =>
