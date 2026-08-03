@@ -109,6 +109,57 @@ public class SuperShopFactory : WebApplicationFactory<Program>, IAsyncLifetime
         response.EnsureSuccessStatusCode();
     }
 
+    public async Task<(int Id, string OrderNumber)> PlaceOrderAsync(string email)
+    {
+        var client = await SignInAsCustomerAsync(email);
+
+        var address = await client.PostAsJsonAsync("/api/me/addresses", new
+        {
+            fullName = "Kennedy Silva",
+            line1 = "Rua das Flores 12",
+            line2 = (string?)null,
+            postalCode = "4050-262",
+            city = "Porto",
+            country = "PT",
+            phone = "912345678",
+            isDefault = true
+        });
+
+        var addressId = (await address.Content.ReadFromJsonAsync<CreatedAddress>())!.Id;
+
+        var product = await client.GetFromJsonAsync<ProductDetail>("/api/products/axis-runner");
+        var variant = product!.Variants.First(v => v.Stock > 0);
+
+        await client.PostAsJsonAsync("/api/cart/items", new { productVariantId = variant.Id, quantity = 1 });
+
+        var placed = await client.PostAsJsonAsync("/api/orders", new
+        {
+            addressId,
+            paymentMethod = 1,
+            mbWayPhone = (string?)null,
+            cardNumber = (string?)null
+        });
+
+        placed.EnsureSuccessStatusCode();
+
+        var number = (await placed.Content.ReadFromJsonAsync<PlacedOrder>())!.OrderNumber;
+
+        var admin = await SignInAsAdminAsync();
+        var all = await admin.GetFromJsonAsync<List<AdminOrderRow>>("/api/admin/orders");
+
+        return (all!.First(o => o.OrderNumber == number).Id, number);
+    }
+
+    private record CreatedAddress(int Id);
+
+    private record ProductDetail(List<VariantRow> Variants);
+
+    private record VariantRow(int Id, int Stock);
+
+    private record PlacedOrder(string OrderNumber);
+
+    private record AdminOrderRow(int Id, string OrderNumber);
+
     public Task<HttpClient> SignInAsAdminAsync() =>
         Authenticate(CreateClient(), "admin@supershop.pt", "AdminPassword123!");
 

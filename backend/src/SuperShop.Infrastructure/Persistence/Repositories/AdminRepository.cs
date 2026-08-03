@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SuperShop.Application.Admin;
+using SuperShop.Application.Orders;
 using SuperShop.Domain.Entities;
 using SuperShop.Domain.Enums;
 using SuperShop.Domain.Exceptions;
@@ -233,6 +234,66 @@ public class AdminRepository(SuperShopDbContext context, TimeProvider clock) : I
             .ToListAsync(cancellationToken);
 
         return [.. orders.Select(o => o with { NextStates = OrderStateMachine.NextStates(o.Status) })];
+    }
+
+    public async Task<AdminOrderDetailDto> GetOrderAsync(int orderId, CancellationToken cancellationToken)
+    {
+        var order = await context.Orders
+            .AsNoTracking()
+            .Where(o => o.Id == orderId)
+            .Select(o => new AdminOrderDetailDto(
+                o.Id,
+                o.OrderNumber,
+                o.Status,
+                context.Users
+                    .Where(u => u.Id == o.UserId)
+                    .Select(u => u.FirstName + " " + u.LastName)
+                    .FirstOrDefault() ?? o.ShippingFullName,
+                context.Users
+                    .Where(u => u.Id == o.UserId)
+                    .Select(u => u.Email)
+                    .FirstOrDefault() ?? "",
+                o.Subtotal,
+                o.ShippingCost,
+                o.Total,
+                o.ShippingFullName,
+                o.ShippingLine1,
+                o.ShippingLine2,
+                o.ShippingPostalCode,
+                o.ShippingCity,
+                o.ShippingCountry,
+                o.ShippingPhone,
+                o.CreatedAt,
+                o.PaidAt,
+                o.ShippedAt,
+                o.Items
+                    .Select(i => new OrderLineDto(
+                        i.ProductName,
+                        i.CollectionName,
+                        i.SizeLabel,
+                        i.Sku,
+                        i.UnitPrice,
+                        i.Quantity,
+                        i.LineTotal,
+                        i.ProductVariant.Product.Images
+                            .OrderByDescending(m => m.IsPrimary)
+                            .Select(m => m.PublicId)
+                            .FirstOrDefault()))
+                    .ToList(),
+                new PaymentDto(
+                    o.Payment.Method,
+                    o.Payment.Status,
+                    o.Payment.Amount,
+                    o.Payment.MbEntity,
+                    o.Payment.MbReference,
+                    o.Payment.MbWayPhone,
+                    o.Payment.CardLast4,
+                    o.Payment.ExpiresAt,
+                    o.Payment.ConfirmedAt)))
+            .FirstOrDefaultAsync(cancellationToken)
+            ?? throw NotFoundException.For("Encomenda", orderId);
+
+        return order with { NextStates = OrderStateMachine.NextStates(order.Status) };
     }
 
     public async Task<AdminOrderDto> SetOrderStatusAsync(
