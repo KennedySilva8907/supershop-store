@@ -150,3 +150,19 @@ administrator is created only if the e-mail is not taken.
 The API ships as a container. It runs as an unprivileged user and exposes
 `/health` for liveness and `/health/ready` for database readiness, which is the
 one a platform should poll.
+
+Both halves publish themselves on a merge to `main`: the store through Vercel,
+the API through the `Deploy API` job, which only runs after the other three
+pass. It waits for `/health/ready` afterwards, so a deployment that starts but
+never answers fails the run instead of going quietly.
+
+For a while only the store published itself, and the API had to be pushed by
+hand. That is how production ended up with a store calling endpoints the API
+did not have yet.
+
+The job needs `FLY_API_TOKEN` in the repository secrets. It is scoped to this
+one application rather than the whole account:
+
+```bash
+fly tokens create deploy --app supershop-api --name github-actions
+```
