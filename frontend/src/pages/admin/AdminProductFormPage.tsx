@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { Field, FormError } from "../../components/ui/Field";
 import { ApiError, apiGet, apiSend } from "../../lib/apiClient";
-import type { AdminProductForm, Category, Collection } from "../../types/admin";
+import type { AdminProductForm, Category, Collection, SaveProduct } from "../../types/admin";
 import { ProductImages } from "./ProductImages";
 
 function slugify(value: string): string {
@@ -42,7 +42,7 @@ export function AdminProductFormPage() {
   });
 
   const save = useMutation({
-    mutationFn: (body: Record<string, unknown>) =>
+    mutationFn: (body: SaveProduct) =>
       isNew
         ? apiSend<AdminProductForm>("POST", "/admin/products", body)
         : apiSend<AdminProductForm>("PUT", `/admin/products/${id}`, body),

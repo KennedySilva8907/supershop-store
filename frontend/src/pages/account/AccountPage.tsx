@@ -5,7 +5,7 @@ import { useAuth } from "../../features/auth/AuthContext";
 import { ApiError } from "../../lib/apiClient";
 
 export function AccountPage() {
-  const { user, updateProfile, signOut } = useAuth();
+  const { user, isAdmin, updateProfile, signOut } = useAuth();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -132,6 +132,21 @@ export function AccountPage() {
           <Row label="Email confirmado" value={user.emailConfirmed ? "Sim" : "Não"} />
           <Row label="Perfil" value={user.roles.join(", ")} />
         </dl>
+      )}
+
+      {!editing && isAdmin && (
+        <div className="mt-10 border border-line bg-surface px-5 py-4">
+          <p className="font-mono text-[11px] uppercase tracking-widest text-muted">Backoffice</p>
+          <p className="mt-2 text-sm">
+            Esta conta gere a loja: produtos, stock e encomendas.
+          </p>
+          <Link
+            to="/admin"
+            className="mt-4 inline-block bg-ink px-6 py-3 text-sm text-bg transition hover:opacity-90"
+          >
+            Abrir o backoffice
+          </Link>
+        </div>
       )}
 
       {!editing && (

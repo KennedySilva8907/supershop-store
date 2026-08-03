@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { cloudinaryUrl } from "../../lib/cloudinary";
+import { cloudinarySrcSet, cloudinaryUrl } from "../../lib/cloudinary";
 import { formatPrice } from "../../lib/format";
 import type { ProductListItem } from "../../types/catalog";
 
@@ -12,6 +12,8 @@ export function ProductCard({ product, priority = false }: { product: ProductLis
         {image ? (
           <img
             src={cloudinaryUrl(image.publicId, 400)}
+            srcSet={cloudinarySrcSet(image.publicId, [400, 600, 800])}
+            sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
             alt={image.altText}
             width={400}
             height={400}
