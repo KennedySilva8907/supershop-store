@@ -17,5 +17,4 @@ public class PaymentOptions
     public const string SectionName = "Payments";
 
     public string MultibancoEntity { get; set; } = "21234";
-    public int MbWayConfirmationSeconds { get; set; } = 8;
 }

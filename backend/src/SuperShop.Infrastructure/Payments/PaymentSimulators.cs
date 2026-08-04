@@ -33,7 +33,7 @@ public class MultibancoSimulator(IOptions<PaymentOptions> options) : IPaymentSim
         payment.ExpiresAt is null || payment.ExpiresAt > now;
 }
 
-public class MbWaySimulator(IOptions<PaymentOptions> options) : IPaymentSimulator
+public class MbWaySimulator : IPaymentSimulator
 {
     public PaymentMethod Method => PaymentMethod.MbWay;
     public bool ConfirmsImmediately => false;
