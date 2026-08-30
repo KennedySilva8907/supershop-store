@@ -311,16 +311,18 @@ public class OrderRepository(
 
     private async Task<string> NextOrderNumberAsync(DateTimeOffset now, CancellationToken cancellationToken)
     {
-        var prefix = $"SS-{now.Year}-";
+        var year = now.Year;
 
-        var last = await context.Orders
-            .Where(o => o.OrderNumber.StartsWith(prefix))
-            .OrderByDescending(o => o.OrderNumber)
-            .Select(o => o.OrderNumber)
-            .FirstOrDefaultAsync(cancellationToken);
+        var next = await context.Database
+            .SqlQuery<int>($"""
+                INSERT INTO "OrderNumberCounters" ("Year", "Next")
+                VALUES ({year}, 1)
+                ON CONFLICT ("Year")
+                DO UPDATE SET "Next" = "OrderNumberCounters"."Next" + 1
+                RETURNING "Next" AS "Value"
+                """)
+            .ToListAsync(cancellationToken);
 
-        var next = last is null ? 1 : int.Parse(last[prefix.Length..]) + 1;
-
-        return prefix + next.ToString("D4");
+        return $"SS-{year}-{next.Single():D4}";
     }
 }
