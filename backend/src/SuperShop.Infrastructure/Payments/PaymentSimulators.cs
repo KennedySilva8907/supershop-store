@@ -21,7 +21,6 @@ public class MultibancoSimulator(IOptions<PaymentOptions> options) : IPaymentSim
         return new Payment
         {
             Method = Method,
-            Status = PaymentStatus.Pending,
             Amount = details.Amount,
             MbEntity = details.Entity,
             MbReference = details.Reference,
@@ -55,7 +54,6 @@ public class MbWaySimulator : IPaymentSimulator
         return new Payment
         {
             Method = Method,
-            Status = PaymentStatus.Pending,
             Amount = decimal.Round(context.Amount, 2, MidpointRounding.AwayFromZero),
             MbWayPhone = phone,
             ExpiresAt = now.AddMinutes(5)
@@ -78,14 +76,16 @@ public class CardSimulator : IPaymentSimulator
             throw new ConflictException("O número do cartão não é válido.");
         }
 
-        return new Payment
+        var payment = new Payment
         {
             Method = Method,
-            Status = PaymentStatus.Confirmed,
             Amount = decimal.Round(context.Amount, 2, MidpointRounding.AwayFromZero),
-            CardLast4 = CardNumber.LastFour(context.CardNumber!),
-            ConfirmedAt = now
+            CardLast4 = CardNumber.LastFour(context.CardNumber!)
         };
+
+        payment.Confirm(now);
+
+        return payment;
     }
 
     public bool CanConfirm(Payment payment, DateTimeOffset now) => true;
@@ -99,7 +99,6 @@ public class CashOnDeliverySimulator : IPaymentSimulator
     public Payment Create(PaymentContext context, DateTimeOffset now) => new()
     {
         Method = Method,
-        Status = PaymentStatus.Pending,
         Amount = decimal.Round(context.Amount, 2, MidpointRounding.AwayFromZero)
     };
 
