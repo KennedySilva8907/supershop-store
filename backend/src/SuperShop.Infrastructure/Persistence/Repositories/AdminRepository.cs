@@ -336,7 +336,7 @@ public class AdminRepository(SuperShopDbContext context, StockLedger stock, Time
         var now = clock.GetUtcNow();
         var strategy = context.Database.CreateExecutionStrategy();
 
-        return await strategy.ExecuteAsync(async () =>
+        await strategy.ExecuteAsync(async () =>
         {
             await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
@@ -385,19 +385,19 @@ public class AdminRepository(SuperShopDbContext context, StockLedger stock, Time
 
             await context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
-
-            var updated = await context.Orders
-                .AsNoTracking()
-                .Where(o => o.Id == orderId)
-                .Select(o => new AdminOrderDto(
-                    o.Id, o.OrderNumber, o.Status, o.Total,
-                    o.Items.Sum(i => i.Quantity),
-                    o.ShippingFullName, o.ShippingCity,
-                    o.Payment.Method, o.Payment.Status, o.CreatedAt))
-                .FirstAsync(cancellationToken);
-
-            return updated with { NextStates = OrderStateMachine.NextStates(updated.Status) };
         });
+
+        var updated = await context.Orders
+            .AsNoTracking()
+            .Where(o => o.Id == orderId)
+            .Select(o => new AdminOrderDto(
+                o.Id, o.OrderNumber, o.Status, o.Total,
+                o.Items.Sum(i => i.Quantity),
+                o.ShippingFullName, o.ShippingCity,
+                o.Payment.Method, o.Payment.Status, o.CreatedAt))
+            .FirstAsync(cancellationToken);
+
+        return updated with { NextStates = OrderStateMachine.NextStates(updated.Status) };
     }
 
     public async Task<DashboardDto> GetDashboardAsync(CancellationToken cancellationToken)

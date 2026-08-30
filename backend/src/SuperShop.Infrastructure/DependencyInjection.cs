@@ -39,7 +39,10 @@ public static class DependencyInjection
         }
 
         services.AddDbContext<SuperShopDbContext>(options =>
-            options.UseNpgsql(connectionString));
+            options.UseNpgsql(connectionString, npgsql => npgsql.EnableRetryOnFailure(
+                maxRetryCount: 3,
+                maxRetryDelay: TimeSpan.FromSeconds(5),
+                errorCodesToAdd: null)));
 
         services.AddDataProtection();
 
