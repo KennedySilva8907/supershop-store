@@ -71,7 +71,6 @@ public class OrderRepository(
             {
                 OrderNumber = await NextOrderNumberAsync(now, cancellationToken),
                 UserId = userId,
-                Status = OrderStatus.AwaitingPayment,
                 Subtotal = totals.Subtotal,
                 ShippingCost = totals.ShippingCost,
                 Total = totals.Total,
@@ -109,12 +108,12 @@ public class OrderRepository(
                 new PaymentContext(order.Id, order.Total, request.MbWayPhone, request.CardNumber), now);
 
             payment.OrderId = order.Id;
+            order.Payment = payment;
             context.Payments.Add(payment);
 
             if (simulator.ConfirmsImmediately)
             {
-                order.Status = OrderStatus.Paid;
-                order.PaidAt = now;
+                order.MarkPaid(now);
 
                 await stock.TakeAsync(
                     items.Select(i => new StockLine(i.ProductVariantId, i.Quantity, i.ProductVariant.Sku)),
@@ -198,27 +197,22 @@ public class OrderRepository(
                 return;
             }
 
-            OrderStateMachine.EnsureCanTransition(order.Status, OrderStatus.Paid);
-
             var simulator = simulators.For(order.Payment.Method);
 
             if (!simulator.CanConfirm(order.Payment, now))
             {
-                order.Payment.Status = PaymentStatus.Expired;
+                order.Payment.Expire();
                 await context.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
 
                 throw new ConflictException("O prazo de pagamento expirou.");
             }
 
+            order.MarkPaid(now);
+
             await stock.TakeAsync(
                 order.Items.Select(i => new StockLine(i.ProductVariantId, i.Quantity, i.Sku)),
                 cancellationToken);
-
-            order.Status = OrderStatus.Paid;
-            order.PaidAt = now;
-            order.Payment.Status = PaymentStatus.Confirmed;
-            order.Payment.ConfirmedAt = now;
 
             await context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
@@ -238,17 +232,16 @@ public class OrderRepository(
 
             var order = await Tracked(userId, orderNumber, cancellationToken);
 
-            OrderStateMachine.EnsureCanTransition(order.Status, OrderStatus.Cancelled);
+            var heldStock = order.HoldsStock;
 
-            if (OrderStateMachine.HoldsStock(order.Status))
+            order.Cancel();
+
+            if (heldStock)
             {
                 await stock.ReturnAsync(
                     order.Items.Select(i => new StockLine(i.ProductVariantId, i.Quantity, i.Sku)),
                     cancellationToken);
             }
-
-            order.Status = OrderStatus.Cancelled;
-            order.Payment.Status = PaymentStatus.Failed;
 
             await context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);

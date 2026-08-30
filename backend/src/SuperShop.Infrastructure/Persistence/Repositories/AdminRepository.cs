@@ -346,10 +346,11 @@ public class AdminRepository(SuperShopDbContext context, StockLedger stock, Time
                 .FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken)
                 ?? throw NotFoundException.For("Encomenda", orderId);
 
-            OrderStateMachine.EnsureCanTransition(order.Status, status);
+            var heldBefore = order.HoldsStock;
 
-            var heldBefore = OrderStateMachine.HoldsStock(order.Status);
-            var heldAfter = OrderStateMachine.HoldsStock(status);
+            order.MoveTo(status, now);
+
+            var heldAfter = order.HoldsStock;
 
             var lines = order.Items
                 .Select(i => new StockLine(i.ProductVariantId, i.Quantity, i.Sku))
@@ -362,25 +363,6 @@ public class AdminRepository(SuperShopDbContext context, StockLedger stock, Time
             else if (heldBefore && !heldAfter)
             {
                 await stock.ReturnAsync(lines, cancellationToken);
-            }
-
-            order.Status = status;
-
-            if (status == OrderStatus.Paid)
-            {
-                order.PaidAt ??= now;
-                order.Payment.Status = PaymentStatus.Confirmed;
-                order.Payment.ConfirmedAt ??= now;
-            }
-
-            if (status == OrderStatus.Shipped)
-            {
-                order.ShippedAt ??= now;
-            }
-
-            if (status == OrderStatus.Cancelled)
-            {
-                order.Payment.Status = PaymentStatus.Failed;
             }
 
             await context.SaveChangesAsync(cancellationToken);
