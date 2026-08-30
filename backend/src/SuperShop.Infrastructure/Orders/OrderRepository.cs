@@ -33,7 +33,7 @@ public class OrderRepository(
         var now = clock.GetUtcNow();
         var strategy = context.Database.CreateExecutionStrategy();
 
-        return await strategy.ExecuteAsync(async () =>
+        var placedNumber = await strategy.ExecuteAsync(async () =>
         {
             await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
@@ -125,12 +125,14 @@ public class OrderRepository(
             await context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
-            var placed = await LoadAsync(userId, order.OrderNumber, cancellationToken);
-
-            await NotifyAsync(userId, placed, cancellationToken);
-
-            return placed;
+            return order.OrderNumber;
         });
+
+        var placed = await LoadAsync(userId, placedNumber, cancellationToken);
+
+        await NotifyAsync(userId, placed, cancellationToken);
+
+        return placed;
     }
 
     private async Task NotifyAsync(string userId, OrderDto order, CancellationToken cancellationToken)
@@ -185,7 +187,7 @@ public class OrderRepository(
         var now = clock.GetUtcNow();
         var strategy = context.Database.CreateExecutionStrategy();
 
-        return await strategy.ExecuteAsync(async () =>
+        await strategy.ExecuteAsync(async () =>
         {
             await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
@@ -193,7 +195,7 @@ public class OrderRepository(
 
             if (order.Status == OrderStatus.Paid)
             {
-                return await LoadAsync(userId, orderNumber, cancellationToken);
+                return;
             }
 
             OrderStateMachine.EnsureCanTransition(order.Status, OrderStatus.Paid);
@@ -220,9 +222,9 @@ public class OrderRepository(
 
             await context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
-
-            return await LoadAsync(userId, orderNumber, cancellationToken);
         });
+
+        return await LoadAsync(userId, orderNumber, cancellationToken);
     }
 
     public async Task<OrderDto> CancelAsync(string userId, string orderNumber, CancellationToken cancellationToken)
@@ -230,7 +232,7 @@ public class OrderRepository(
         var now = clock.GetUtcNow();
         var strategy = context.Database.CreateExecutionStrategy();
 
-        return await strategy.ExecuteAsync(async () =>
+        await strategy.ExecuteAsync(async () =>
         {
             await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
@@ -250,9 +252,9 @@ public class OrderRepository(
 
             await context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
-
-            return await LoadAsync(userId, orderNumber, cancellationToken);
         });
+
+        return await LoadAsync(userId, orderNumber, cancellationToken);
     }
 
     public async Task<IReadOnlyList<OrderSummaryDto>> ListAsync(string userId, CancellationToken cancellationToken) =>
