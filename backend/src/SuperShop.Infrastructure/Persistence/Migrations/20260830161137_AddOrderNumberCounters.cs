@@ -27,7 +27,7 @@ namespace SuperShop.Infrastructure.Persistence.Migrations
                 SELECT CAST(SUBSTRING("OrderNumber" FROM 4 FOR 4) AS integer),
                        MAX(CAST(SUBSTRING("OrderNumber" FROM 9) AS integer))
                 FROM "Orders"
-                GROUP BY CAST(SUBSTRING("OrderNumber" FROM 4 FOR 4) AS integer)
+                GROUP BY CAST(SUBSTRING("OrderNumber" FROM 4 FOR 4) AS integer);
                 """);
         }
 
