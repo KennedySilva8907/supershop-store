@@ -17,6 +17,7 @@ namespace SuperShop.Infrastructure.Orders;
 
 public class OrderRepository(
     SuperShopDbContext context,
+    StockLedger stock,
     IPaymentSimulatorFactory simulators,
     IOptions<ShippingOptions> shipping,
     UserManager<ApplicationUser> userManager,
@@ -115,10 +116,9 @@ public class OrderRepository(
                 order.Status = OrderStatus.Paid;
                 order.PaidAt = now;
 
-                foreach (var item in items)
-                {
-                    item.ProductVariant.Stock -= item.Quantity;
-                }
+                await stock.TakeAsync(
+                    items.Select(i => new StockLine(i.ProductVariantId, i.Quantity, i.ProductVariant.Sku)),
+                    cancellationToken);
             }
 
             context.CartItems.RemoveRange(items);
@@ -209,18 +209,9 @@ public class OrderRepository(
                 throw new ConflictException("O prazo de pagamento expirou.");
             }
 
-            foreach (var item in order.Items)
-            {
-                var variant = await context.ProductVariants
-                    .FirstAsync(v => v.Id == item.ProductVariantId, cancellationToken);
-
-                if (item.Quantity > variant.Stock)
-                {
-                    throw new InsufficientStockException(item.Sku, item.Quantity, variant.Stock);
-                }
-
-                variant.Stock -= item.Quantity;
-            }
+            await stock.TakeAsync(
+                order.Items.Select(i => new StockLine(i.ProductVariantId, i.Quantity, i.Sku)),
+                cancellationToken);
 
             order.Status = OrderStatus.Paid;
             order.PaidAt = now;
@@ -249,13 +240,9 @@ public class OrderRepository(
 
             if (OrderStateMachine.HoldsStock(order.Status))
             {
-                foreach (var item in order.Items)
-                {
-                    var variant = await context.ProductVariants
-                        .FirstAsync(v => v.Id == item.ProductVariantId, cancellationToken);
-
-                    variant.Stock += item.Quantity;
-                }
+                await stock.ReturnAsync(
+                    order.Items.Select(i => new StockLine(i.ProductVariantId, i.Quantity, i.Sku)),
+                    cancellationToken);
             }
 
             order.Status = OrderStatus.Cancelled;

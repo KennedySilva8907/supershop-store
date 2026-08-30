@@ -8,7 +8,7 @@ using SuperShop.Domain.Orders;
 
 namespace SuperShop.Infrastructure.Persistence.Repositories;
 
-public class AdminRepository(SuperShopDbContext context, TimeProvider clock) : IAdminRepository
+public class AdminRepository(SuperShopDbContext context, StockLedger stock, TimeProvider clock) : IAdminRepository
 {
     public async Task<IReadOnlyList<AdminProductDto>> ListProductsAsync(
         string? search,
@@ -351,30 +351,17 @@ public class AdminRepository(SuperShopDbContext context, TimeProvider clock) : I
             var heldBefore = OrderStateMachine.HoldsStock(order.Status);
             var heldAfter = OrderStateMachine.HoldsStock(status);
 
+            var lines = order.Items
+                .Select(i => new StockLine(i.ProductVariantId, i.Quantity, i.Sku))
+                .ToList();
+
             if (!heldBefore && heldAfter)
             {
-                foreach (var item in order.Items)
-                {
-                    var variant = await context.ProductVariants
-                        .FirstAsync(v => v.Id == item.ProductVariantId, cancellationToken);
-
-                    if (item.Quantity > variant.Stock)
-                    {
-                        throw new InsufficientStockException(item.Sku, item.Quantity, variant.Stock);
-                    }
-
-                    variant.Stock -= item.Quantity;
-                }
+                await stock.TakeAsync(lines, cancellationToken);
             }
             else if (heldBefore && !heldAfter)
             {
-                foreach (var item in order.Items)
-                {
-                    var variant = await context.ProductVariants
-                        .FirstAsync(v => v.Id == item.ProductVariantId, cancellationToken);
-
-                    variant.Stock += item.Quantity;
-                }
+                await stock.ReturnAsync(lines, cancellationToken);
             }
 
             order.Status = status;

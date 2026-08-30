@@ -70,6 +70,7 @@ public static class DependencyInjection
         services.AddScoped<AddressService>();
         services.AddScoped<ICartRepository, CartRepository>();
         services.AddScoped<CartService>();
+        services.AddScoped<StockLedger>();
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<OrderService>();
         services.AddScoped<IPaymentSimulator, MultibancoSimulator>();
