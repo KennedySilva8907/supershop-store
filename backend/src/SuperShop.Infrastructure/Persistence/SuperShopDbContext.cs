@@ -21,6 +21,7 @@ public class SuperShopDbContext(DbContextOptions<SuperShopDbContext> options)
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<OrderNumberCounter> OrderNumberCounters => Set<OrderNumberCounter>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
