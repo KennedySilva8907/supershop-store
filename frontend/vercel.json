@@ -6,9 +6,9 @@
   "installCommand": "npm ci",
   "redirects": [
     {
-      "source": "/:path*",
+      "source": "/(.*)",
       "has": [{ "type": "host", "value": "www.supershop.pt" }],
-      "destination": "https://supershop.pt/:path*",
+      "destination": "https://supershop.pt/$1",
       "permanent": true
     }
   ],
