@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -55,15 +56,17 @@ public static class AuthenticationExtensions
         return services;
     }
 
-    public static IServiceCollection AddAuthRateLimiting(this IServiceCollection services, IConfiguration configuration) =>
-        services.AddRateLimiter(options =>
-        {
-            var permitPerMinute = configuration.GetValue<int?>("RateLimit:AuthPermitPerMinute") ?? 5;
+    public static IServiceCollection AddAuthRateLimiting(this IServiceCollection services, IConfiguration configuration)
+    {
+        var permitPerMinute = configuration.GetValue<int?>("RateLimit:AuthPermitPerMinute") ?? 5;
+        var onFly = !string.IsNullOrWhiteSpace(configuration["FLY_APP_NAME"]);
 
+        return services.AddRateLimiter(options =>
+        {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
             options.AddPolicy("auth", context => RateLimitPartition.GetFixedWindowLimiter(
-                context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                ClientAddress(context, onFly),
                 _ => new FixedWindowRateLimiterOptions
                 {
                     PermitLimit = permitPerMinute,
@@ -71,4 +74,27 @@ public static class AuthenticationExtensions
                     QueueLimit = 0
                 }));
         });
+    }
+
+    private static string ClientAddress(HttpContext context, bool onFly)
+    {
+        if (onFly && FlyClientIp(context) is { } address)
+        {
+            return address;
+        }
+
+        return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+    }
+
+    private static string? FlyClientIp(HttpContext context)
+    {
+        if (!context.Request.Headers.TryGetValue("Fly-Client-IP", out var value))
+        {
+            return null;
+        }
+
+        var text = value.ToString().Trim();
+
+        return IPAddress.TryParse(text, out var parsed) ? parsed.ToString() : null;
+    }
 }

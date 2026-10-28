@@ -52,10 +52,18 @@ public class IdentityGateway(
     {
         var user = await userManager.FindByEmailAsync(request.Email);
 
-        if (user is null || !await userManager.CheckPasswordAsync(user, request.Password))
+        if (user is null || await userManager.IsLockedOutAsync(user))
         {
             throw new UnauthorizedException("Email ou password incorretos.");
         }
+
+        if (!await userManager.CheckPasswordAsync(user, request.Password))
+        {
+            await userManager.AccessFailedAsync(user);
+            throw new UnauthorizedException("Email ou password incorretos.");
+        }
+
+        await userManager.ResetAccessFailedCountAsync(user);
 
         if (!user.EmailConfirmed)
         {

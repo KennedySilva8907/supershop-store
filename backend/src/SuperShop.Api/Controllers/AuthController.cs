@@ -31,6 +31,7 @@ public class AuthController(AuthService auth, IConfiguration configuration) : Co
     }
 
     [HttpPost("refresh")]
+    [EnableRateLimiting("auth")]
     public async Task<ActionResult<AuthResponse>> Refresh(CancellationToken cancellationToken)
     {
         var (user, tokens) = await auth.RefreshAsync(RefreshCookie.Read(Request), cancellationToken);
@@ -50,6 +51,7 @@ public class AuthController(AuthService auth, IConfiguration configuration) : Co
     }
 
     [HttpPost("confirm-email")]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> ConfirmEmail(
         ConfirmEmailRequest request,
         CancellationToken cancellationToken)

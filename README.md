@@ -159,8 +159,19 @@ Development uses User Secrets, production uses platform environment variables.
 | `Cloudinary__Url` | Image storage |
 | `Email__ApiKey` | Transactional email |
 | `Admin__Email` / `Admin__Password` | Admin seed |
-| `RateLimit__AuthPermitPerMinute` | Sign in attempts per minute per IP, default 5 |
+| `RateLimit__AuthPermitPerMinute` | Auth attempts per minute for one client, default 5 |
+| `Lockout__MaxFailedAccessAttempts` | Wrong passwords on one account before it locks, default 5 |
+| `Lockout__DefaultLockoutSeconds` | How long that lock lasts, default 300 |
 | `Auth__FrontendOnAnotherSite` | `true` only when the store is not on a subdomain of the API's site |
+
+Register, login, refresh, confirm-email, resend, forgot-password and reset-password
+share that limit. On Fly the client is `Fly-Client-IP`, which the proxy sets,
+and the app only trusts it when `FLY_APP_NAME` is present. Fly puts that on
+the machine. A caller-supplied `X-Forwarded-For` is not the key. Off Fly the
+limit follows the socket address.
+
+Five wrong passwords lock that account for five minutes. The answer is the
+same 401 as a wrong password, including when the email is not registered.
 
 The refresh cookie is `SameSite=Strict`, which is what the store and the API
 sharing `supershop.pt` allows, and it is the strongest of the three: the
