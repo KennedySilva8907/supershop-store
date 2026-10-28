@@ -51,6 +51,10 @@ public static class DependencyInjection
                 options.User.RequireUniqueEmail = true;
                 options.Password.RequiredLength = 8;
                 options.SignIn.RequireConfirmedEmail = true;
+                options.Lockout.AllowedForNewUsers = true;
+                options.Lockout.MaxFailedAccessAttempts = Positive(configuration, "Lockout:MaxFailedAccessAttempts", 5);
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromSeconds(
+                    Positive(configuration, "Lockout:DefaultLockoutSeconds", 300));
             })
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<SuperShopDbContext>()
@@ -125,4 +129,7 @@ public static class DependencyInjection
 
         return services;
     }
+
+    private static int Positive(IConfiguration configuration, string key, int fallback) =>
+        int.TryParse(configuration[key], out var value) && value > 0 ? value : fallback;
 }
